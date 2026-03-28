@@ -1,0 +1,102 @@
+:root {
+  --ven-yellow: #FFD700;
+  --ven-blue: #003893;
+  --ven-red: #EF3340;
+  --bg-gradient: radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 0%, transparent 35%),
+                 radial-gradient(circle at 100% 100%, rgba(239, 51, 64, 0.08) 0%, transparent 40%),
+                 radial-gradient(circle at 50% 50%, rgba(0, 56, 147, 0.15) 0%, #020617 100%);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --accent-color: var(--ven-yellow);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+}
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-nav {
+  background: rgba(2, 6, 23, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* ANIMACIONES PREMIUM */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes animateShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.stagger-1 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.5s; opacity: 0; }
+
+.shimmer-loading {
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0.03) 25%, 
+    rgba(255,255,255,0.08) 50%, 
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: animateShimmer 2s infinite linear;
+}
+
