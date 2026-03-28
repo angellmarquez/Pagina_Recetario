@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -6,6 +7,55 @@ const { encrypt, decrypt } = require('./encryption');
 
 // Importamos la conexión a la base de datos que acabamos de crear
 const connection = require('./conexion');
+
+// Guardar plan semanal (Permite múltiples planes)
+router.post('/plan-semanal/guardar', (req, res) => {
+    const { id_usuario, plan_json, nombre_plan } = req.body;
+    if (!id_usuario || !plan_json) {
+        return res.status(400).json({ success: false, mensaje: 'Faltan datos para guardar el plan semanal' });
+    }
+    
+    const query = `INSERT INTO planes_semanales (id_usuario, plan_json, nombre_plan) VALUES (?, ?, ?)`;
+    connection.query(query, [id_usuario, plan_json, nombre_plan || 'Mi Plan Semanal'], (err, results) => {
+        if (err) {
+            console.error("Error al guardar plan:", err);
+            return res.status(500).json({ success: false, mensaje: 'Error al guardar el plan semanal' });
+        }
+        res.json({ success: true, mensaje: '¡Plan semanal guardado correctamente, mijo!', id_plan: results.insertId });
+    });
+});
+
+// Obtener lista de planes de un usuario (Solo metadata)
+router.get('/plan-semanal/usuario/:id_usuario', (req, res) => {
+    const { id_usuario } = req.params;
+    const query = 'SELECT id_plan, nombre_plan, fecha_creacion FROM planes_semanales WHERE id_usuario = ? ORDER BY fecha_creacion DESC';
+    connection.query(query, [id_usuario], (err, results) => {
+        if (err) return res.status(500).json({ success: false, mensaje: 'Error al obtener los planes' });
+        res.json({ success: true, planes: results });
+    });
+});
+
+// Obtener detalle de un plan específico
+router.get('/plan-semanal/detalle/:id_plan', (req, res) => {
+    const { id_plan } = req.params;
+    const query = 'SELECT plan_json FROM planes_semanales WHERE id_plan = ?';
+    connection.query(query, [id_plan], (err, results) => {
+        if (err) return res.status(500).json({ success: false, mensaje: 'Error al obtener el detalle del plan' });
+        if (results.length === 0) return res.status(404).json({ success: false, mensaje: 'Plan no encontrado' });
+        res.json({ success: true, plan: JSON.parse(results[0].plan_json) });
+    });
+});
+
+// Eliminar un plan semanal
+router.delete('/plan-semanal/:id_plan', (req, res) => {
+    const { id_plan } = req.params;
+    const query = 'DELETE FROM planes_semanales WHERE id_plan = ?';
+    connection.query(query, [id_plan], (err) => {
+        if (err) return res.status(500).json({ success: false, mensaje: 'Error al eliminar el plan' });
+        res.json({ success: true, mensaje: 'Plan eliminado correctamente' });
+    });
+});
+
 
 // Ruta para el Login
 router.post('/login', (req, res) => {
@@ -118,25 +168,36 @@ router.post('/registro', async (req, res) => {
     }
 });
 
-// Ruta para actualizar perfil (preferencias)
+// Ruta para actualizar perfil (preferencias y nombre)
 router.put('/perfil/:id', (req, res) => {
     const { id } = req.params;
-    let { preferencias_dieteticas } = req.body;
+    let { preferencias_dieteticas, nombre } = req.body;
 
     if (!id || isNaN(id)) {
         return res.status(400).json({ success: false, mensaje: 'ID de usuario inválido' });
     }
 
-    if (preferencias_dieteticas === undefined || preferencias_dieteticas === null) {
-        return res.status(400).json({ success: false, mensaje: 'Preferencias dietéticas requeridas' });
+    const updates = [];
+    const values = [];
+
+    if (preferencias_dieteticas !== undefined && preferencias_dieteticas !== null) {
+        updates.push('preferencias_dieteticas = ?');
+        values.push(encrypt(preferencias_dieteticas.toString().trim()));
     }
 
-    preferencias_dieteticas = preferencias_dieteticas.toString().trim();
+    if (nombre !== undefined && nombre !== null && nombre.toString().trim() !== '') {
+        updates.push('nombre = ?');
+        values.push(encrypt(nombre.toString().trim()));
+    }
 
-    const ePreferencias = encrypt(preferencias_dieteticas);
+    if (updates.length === 0) {
+        return res.status(400).json({ success: false, mensaje: 'No hay datos para actualizar' });
+    }
 
-    const query = 'UPDATE usuarios SET preferencias_dieteticas = ? WHERE id_usuario = ?';
-    connection.query(query, [ePreferencias, id], (err, results) => {
+    const query = `UPDATE usuarios SET ${updates.join(', ')} WHERE id_usuario = ?`;
+    values.push(id);
+
+    connection.query(query, values, (err, results) => {
         if (err) return res.status(500).json({ success: false, mensaje: 'Error al actualizar perfil' });
         res.json({ success: true, mensaje: 'Perfil actualizado' });
     });

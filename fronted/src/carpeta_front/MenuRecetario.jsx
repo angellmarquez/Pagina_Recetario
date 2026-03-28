@@ -21,7 +21,7 @@ const estadosVenezuela = [
   { nombre: "Trujillo", plato: "Carabinas", gradient: "linear-gradient(135deg, #3a5a40 0%, #a3b18a 100%)" },
 ];
 
-const MenuRecetario = ({ usuario, onLogout }) => {
+const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [prompt, setPrompt] = useState('');
   const [respuestaIA, setRespuestaIA] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -38,6 +38,17 @@ const MenuRecetario = ({ usuario, onLogout }) => {
   const [recetaParaModal, setRecetaParaModal] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [planSemanal, setPlanSemanal] = useState(null);
+
+  // Estados para nueva sección de Plan Semanal
+  const [promptPlan, setPromptPlan] = useState('');
+  const [cargandoPlan, setCargandoPlan] = useState(false);
+  const [mensajePlan, setMensajePlan] = useState('');
+  const [nombreNuevoPlan, setNombreNuevoPlan] = useState('');
+
+  // Estados para nueva sección de Perfil
+  const [editandoPerfil, setEditandoPerfil] = useState(false);
+  const [preferenciasInput, setPreferenciasInput] = useState(usuario?.preferencias_dieteticas || '');
+  const [nombreInput, setNombreInput] = useState(usuario?.nombre || '');
 
   const groq = new Groq({
     apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -275,6 +286,93 @@ const MenuRecetario = ({ usuario, onLogout }) => {
     setPrompt(texto);
   };
 
+  const generarPlanSemanalIA = async () => {
+    setCargandoPlan(true);
+    setPlanSemanal(null);
+    setMensajePlan('');
+    try {
+      const pUsuario = promptPlan || 'Sin requerimientos especiales';
+      const prefs = usuario?.preferencias_dieteticas || 'Sin restricciones';
+      const promptContextualizado = `Eres VENIA, una abuela venezolana experta en nutrición y cocina típica. 
+      Crea un plan semanal (Lunes a Domingo) de alimentación venezolana balanceada para el usuario ${usuario?.nombre || ''}.
+      
+      REQURIMIENTOS ESPECÍFICOS DEL USUARIO: "${pUsuario}"
+      PREFERENCIAS DIETÉTICAS GENERALES: "${prefs}"
+      
+      DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con la siguiente estructura:
+      {
+        "lunes": { 
+          "desayuno": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
+          "almuerzo": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
+          "cena": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] }
+        },
+        ... hasta domingo
+      }
+      
+      IMPORTANTE: Las recetas deben ser tradicionales venezolanas, nutritivas y detalladas. Responde solo el JSON.`;
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: promptContextualizado }],
+        model: "llama-3.3-70b-versatile",
+        response_format: { type: "json_object" }
+      });
+
+      const dataString = chatCompletion.choices[0]?.message?.content || "{}";
+      const planParseado = JSON.parse(dataString);
+      setPlanSemanal(planParseado);
+      setNombreNuevoPlan(promptPlan ? `Plan: ${promptPlan.substring(0, 20)}...` : `Plan de ${usuario?.nombre || 'Mi Usuario'}`);
+      setSeccionActiva('ver_plan');
+    } catch (error) {
+      console.error('Error al generar el plan:', error);
+      setMensajePlan('Mijo, no pude armar el plan. Inténtalo de nuevo.');
+    } finally {
+      setCargandoPlan(false);
+    }
+  };
+
+  const guardarPlanSemanalBD = async (planAGuardar, nombre) => {
+    if (!planAGuardar || !usuario?.id_usuario) return;
+    try {
+      const res = await fetch('http://localhost:3000/api/plan-semanal/guardar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id_usuario: usuario.id_usuario, 
+          plan_json: JSON.stringify(planAGuardar),
+          nombre_plan: nombre || 'Mi Plan Semanal'
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMensajePlan('¡Plan guardado en tu cuaderno, mijo! 📅');
+        setTimeout(() => setMensajePlan(''), 3000);
+      }
+    } catch (err) {
+      console.error("Error guardando plan:", err);
+    }
+  };
+
+  const guardarCambiosPerfil = async () => {
+    if (!usuario?.id_usuario) return;
+    try {
+      const res = await fetch(`http://localhost:3000/api/perfil/${usuario.id_usuario}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferencias_dieteticas: preferenciasInput, nombre: nombreInput })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (onActualizarUsuario) {
+          onActualizarUsuario({ nombre: nombreInput, preferencias_dieteticas: preferenciasInput });
+        }
+        setEditandoPerfil(false);
+        alert('¡Perfil actualizado con éxito, mijo!');
+      }
+    } catch (err) {
+      console.error("Error guardando preferencias:", err);
+    }
+  };
+
   return (
     <div className="app-container" style={{
       position: 'relative',
@@ -381,7 +479,27 @@ const MenuRecetario = ({ usuario, onLogout }) => {
                 color: seccionActiva === 'nevera' ? '#FFD700' : 'white',
                 padding: '10px 25px', borderRadius: '14px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', transition: 'all 0.3s'
               }}>
-              ❄️ ¿Qué tengo en mi nevera?
+              🔥 ¿Qué tengo en mi nevera?
+            </button>
+            <button
+              onClick={() => { setSeccionActiva('plan'); setPrompt(''); setRecetaActiva(null); setFondoActivo('linear-gradient(135deg, #0f172a 0%, #020617 100%)'); }}
+              style={{
+                background: seccionActiva === 'plan' ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${seccionActiva === 'plan' ? '#FFD700' : 'rgba(255,255,255,0.1)'}`,
+                color: seccionActiva === 'plan' ? '#FFD700' : 'white',
+                padding: '10px 25px', borderRadius: '14px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', transition: 'all 0.3s'
+              }}>
+              📅 Generar Plan
+            </button>
+            <button
+              onClick={() => { setSeccionActiva('perfil'); setPrompt(''); setRecetaActiva(null); setFondoActivo('linear-gradient(135deg, #0f172a 0%, #020617 100%)'); }}
+              style={{
+                background: seccionActiva === 'perfil' ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${seccionActiva === 'perfil' ? '#FFD700' : 'rgba(255,255,255,0.1)'}`,
+                color: seccionActiva === 'perfil' ? '#FFD700' : 'white',
+                padding: '10px 25px', borderRadius: '14px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', transition: 'all 0.3s'
+              }}>
+              👤 Mi Perfil
             </button>
             <button
               onClick={() => { setSeccionActiva('guardadas'); setPrompt(''); setRecetaActiva(null); setFondoActivo('linear-gradient(135deg, #0f172a 0%, #020617 100%)'); }}
@@ -398,7 +516,7 @@ const MenuRecetario = ({ usuario, onLogout }) => {
 
 
         {/* BUSCADOR Y SUGERENCIAS (SOLO VISIBLE EN BUSCAR O NEVERA) */}
-        {seccionActiva !== 'descubrir' && (
+        {['buscar', 'nevera', 'guardadas'].includes(seccionActiva) && (
           <>
             <div className="stagger-4" style={{
               display: 'flex',
@@ -701,6 +819,138 @@ const MenuRecetario = ({ usuario, onLogout }) => {
               </div>
             )}
 
+            {seccionActiva === 'plan' && !recetaActiva && !cargando && (
+              <div style={{ padding: '20px 0', width: '100%', animation: 'fadeIn 0.5s ease-out', maxWidth: '800px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'left', marginBottom: '40px' }}>
+                  <h2 style={{ color: 'white', fontSize: '32px', fontWeight: '900', margin: '0 0 10px 0', letterSpacing: '-1px' }}>
+                    Armemos la semana 📅
+                  </h2>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0, fontSize: '18px' }}>
+                    Cuéntame qué se te antoja o si tienes alguna dieta. Yo me encargo del resto.
+                  </p>
+                </div>
+
+                <div className="glass-card" style={{ padding: '40px', textAlign: 'left' }}>
+                  <div style={{ marginBottom: '30px' }}>
+                    <label style={{ display: 'block', color: 'white', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>
+                      Requerimientos Especiales (Opcional):
+                    </label>
+                    <textarea 
+                      value={promptPlan}
+                      onChange={(e) => setPromptPlan(e.target.value)}
+                      placeholder="Ej: Quiero un plan vegano con muchas arepas, o algo bajo en carbohidratos..."
+                      style={{ 
+                        width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', 
+                        padding: '20px', borderRadius: '15px', color: 'white', fontSize: '16px', 
+                        minHeight: '120px', outline: 'none', resize: 'vertical'
+                      }}
+                      onFocusCapture={(e) => e.currentTarget.style.borderColor = '#FFD700'}
+                      onBlurCapture={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                    />
+                  </div>
+                  
+                  <button 
+                    onClick={generarPlanSemanalIA}
+                    disabled={cargandoPlan}
+                    style={{ 
+                      width: '100%', background: cargandoPlan ? 'rgba(255,255,255,0.1)' : '#FFD700', 
+                      color: cargandoPlan ? 'rgba(255,255,255,0.3)' : '#0f172a', border: 'none', 
+                      padding: '20px', borderRadius: '15px', fontWeight: '800', fontSize: '18px', 
+                      cursor: cargandoPlan ? 'not-allowed' : 'pointer', transition: 'all 0.3s' 
+                    }}>
+                    {cargandoPlan ? 'Pensando el plan mijo...' : '✨ Generar mi Plan Semanal x VENIA'}
+                  </button>
+
+                  {mensajePlan && <div style={{ color: '#FFD700', fontSize: '16px', fontWeight: '600', textAlign: 'center', marginTop: '20px' }}>{mensajePlan}</div>}
+                </div>
+              </div>
+            )}
+
+            {seccionActiva === 'perfil' && !recetaActiva && !cargando && (
+              <div style={{ padding: '20px 0', width: '100%', animation: 'fadeIn 0.5s ease-out', maxWidth: '800px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'left', marginBottom: '40px' }}>
+                  <h2 style={{ color: 'white', fontSize: '32px', fontWeight: '900', margin: '0 0 10px 0', letterSpacing: '-1px' }}>
+                    Tu Perfil 👤
+                  </h2>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0, fontSize: '18px' }}>
+                    Personaliza cómo te llamo y qué cosas puedo cocinarte.
+                  </p>
+                </div>
+
+                <div className="glass-card" style={{ padding: '40px', textAlign: 'left' }}>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#FFD700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', color: '#003893', fontWeight: 'bold', boxShadow: '0 10px 20px rgba(0,0,0,0.3)' }}>
+                      {nombreInput ? nombreInput.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                      <h3 style={{ color: 'white', margin: '0 0 5px 0', fontSize: '24px' }}>{usuario?.nombre || 'Mi Usuario'}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: 0 }}>{usuario?.email || ''}</p>
+                    </div>
+                  </div>
+
+                  {!editandoPerfil ? (
+                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '30px', borderRadius: '15px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div style={{ marginBottom: '20px' }}>
+                        <h4 style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 5px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Nombre</h4>
+                        <p style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: '600' }}>{usuario?.nombre || 'No definido'}</p>
+                      </div>
+                      <div style={{ marginBottom: '30px' }}>
+                        <h4 style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 5px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Preferencias Dietéticas</h4>
+                        <p style={{ color: 'white', margin: 0, fontSize: '16px', lineHeight: '1.5' }}>{usuario?.preferencias_dieteticas || 'No tienes ninguna restricción agregada, mijo.'}</p>
+                      </div>
+                      
+                      <button 
+                        onClick={() => setEditandoPerfil(true)}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 24px', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                      >
+                        ✏️ Editar Perfil
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                      <div style={{ marginBottom: '25px' }}>
+                        <label style={{ display: 'block', color: 'white', fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
+                          Tu Nombre:
+                        </label>
+                        <input 
+                          type="text"
+                          value={nombreInput}
+                          onChange={(e) => setNombreInput(e.target.value)}
+                          style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', padding: '15px', borderRadius: '10px', color: 'white', fontSize: '16px', outline: 'none' }}
+                        />
+                      </div>
+                      <div style={{ marginBottom: '30px' }}>
+                        <label style={{ display: 'block', color: 'white', fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
+                          Preferencias Dietéticas:
+                        </label>
+                        <textarea 
+                          value={preferenciasInput}
+                          onChange={(e) => setPreferenciasInput(e.target.value)}
+                          placeholder="Ej: Soy alérgico al maní, evito el gluten..."
+                          style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', padding: '15px', borderRadius: '10px', color: 'white', fontSize: '16px', outline: 'none', minHeight: '100px', resize: 'vertical' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '15px' }}>
+                        <button 
+                          onClick={guardarCambiosPerfil}
+                          style={{ flex: 1, background: '#FFD700', color: '#0f172a', border: 'none', padding: '15px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s' }}
+                        >💾 Guardar</button>
+                        <button 
+                          onClick={() => { setEditandoPerfil(false); setNombreInput(usuario?.nombre||''); setPreferenciasInput(usuario?.preferencias_dieteticas||''); }}
+                          style={{ flex: 1, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '15px', borderRadius: '10px', fontSize: '16px', cursor: 'pointer', transition: 'all 0.3s' }}
+                        >Cancelar</button>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            )}
+
             {seccionActiva === 'ver_plan' && !recetaActiva && planSemanal && (
               <div style={{ padding: '0', width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
                 {/* Cabecera Elegante */}
@@ -842,6 +1092,30 @@ const MenuRecetario = ({ usuario, onLogout }) => {
                     </div>
                   ))}
                 </div>
+
+                {/* Guardar Plan Generado */}
+                {nombreNuevoPlan && (
+                  <div style={{ marginTop: '40px', textAlign: 'center' }}>
+                    <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '15px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <label style={{ color: 'white', fontWeight: 'bold' }}>Nombre del Plan:</label>
+                      <input 
+                        type="text" 
+                        value={nombreNuevoPlan} 
+                        onChange={(e) => setNombreNuevoPlan(e.target.value)}
+                        style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '12px 20px', borderRadius: '12px', fontSize: '16px', outline: 'none', textAlign: 'center', width: '300px' }}
+                      />
+                      <button 
+                        onClick={() => guardarPlanSemanalBD(planSemanal, nombreNuevoPlan)}
+                        style={{ background: '#FFD700', color: '#0f172a', border: 'none', padding: '15px 40px', borderRadius: '15px', fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.3s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        💾 Guardar en mi Cuaderno
+                      </button>
+                      {mensajePlan && <span style={{ color: '#FFD700', fontWeight: 'bold' }}>{mensajePlan}</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {recetaActiva && !cargando && (

@@ -70,6 +70,28 @@ connection.connect((err) => {
             `;
             connection.query(tablaRecetas, (err) => { if (err) throw err; });
 
+            // Crear Tabla Planes_Semanales
+            const tablaPlanes = `
+                CREATE TABLE IF NOT EXISTS planes_semanales (
+                    id_plan INT AUTO_INCREMENT PRIMARY KEY,
+                    id_usuario INT NOT NULL,
+                    nombre_plan VARCHAR(255) DEFAULT 'Mi Plan Semanal',
+                    plan_json TEXT NOT NULL,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+                )
+            `;
+            connection.query(tablaPlanes, (err) => { 
+                if (err) throw err; 
+                // Asegurar que la columna nombre_plan existe para bases de datos ya creadas
+                connection.query("SHOW COLUMNS FROM planes_semanales LIKE 'nombre_plan'", (err, results) => {
+                    if (err) throw err;
+                    if (results.length === 0) {
+                        connection.query("ALTER TABLE planes_semanales ADD COLUMN nombre_plan VARCHAR(255) DEFAULT 'Mi Plan Semanal' AFTER id_usuario");
+                    }
+                });
+            });
+
             // Crear Tabla Historial_IA
             const tablaHistorial = `
                 CREATE TABLE IF NOT EXISTS historial_ia (

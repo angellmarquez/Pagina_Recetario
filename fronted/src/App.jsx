@@ -33,13 +33,19 @@ function App() {
     localStorage.removeItem('venia_usuario');
   };
 
+  const handleActualizarUsuario = (nuevosDatos) => {
+    const actualizado = { ...usuario, ...nuevosDatos };
+    setUsuario(actualizado);
+    localStorage.setItem('venia_usuario', JSON.stringify(actualizado));
+  };
+
   return (
     <div className="app-container">
       {vistaActual === 'landing' && <Landing onLogin={() => setVistaActual('login')} onRegistro={() => setVistaActual('registro')} />}
       {vistaActual === 'login' && <Login onLogin={handleIngresoExitoso} irARegistro={() => setVistaActual('registro')} irARecuperar={() => setVistaActual('recuperar')} />}
       {vistaActual === 'registro' && <Registro alCompletar={handleIngresoExitoso} irALogin={() => setVistaActual('login')} />}
       {vistaActual === 'recuperar' && <RecuperarPassword irALogin={() => setVistaActual('login')} />}
-      {vistaActual === 'menu' && <MenuRecetario usuario={usuario} onLogout={handleLogout} />}
+      {vistaActual === 'menu' && <MenuRecetario usuario={usuario} onLogout={handleLogout} onActualizarUsuario={handleActualizarUsuario} />}
       <Footer />
     </div>
   )
