@@ -26,9 +26,11 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
       display: 'flex',
       flexDirection: 'column',
       padding: '40px 20px',
-      background: 'var(--surface-container-lowest)',
+      background: '#0a0f18', 
+      borderRight: '1px solid rgba(255,255,255,0.05)',
       position: 'sticky',
-      top: 0
+      top: 0,
+      zIndex: 100
     }}>
       {/* Brand */}
       <div style={{ marginBottom: '50px', paddingLeft: '20px' }}>

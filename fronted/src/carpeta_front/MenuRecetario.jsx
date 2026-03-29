@@ -7,6 +7,7 @@ import RecipeDetailView from './views/RecipeDetailView';
 import RegionesView from './views/RegionesView';
 import PlanSemanalView from './views/PlanSemanalView';
 import ProfileView from './views/ProfileView';
+import Footer from './components/Footer';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
 import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta, apiGuardarPlanSemanal } from './services/apiService';
 
@@ -209,6 +210,9 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
           </div>
         </main>
       </div>
+
+      {/* GLOBAL FOOTER - Full Width and Below Sidebar/Content */}
+      <Footer setSeccionActiva={setSeccionActiva} />
 
       <Dashboard abierto={dashboardAbierto} onCerrar={() => setDashboardAbierto(false)} usuario={usuario} onLogout={onLogout} apiKey={import.meta.env.VITE_GROQ_API_KEY} />
     </div>

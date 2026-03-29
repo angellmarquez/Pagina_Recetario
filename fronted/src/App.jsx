@@ -46,7 +46,6 @@ function App() {
       {vistaActual === 'registro' && <Registro alCompletar={handleIngresoExitoso} irALogin={() => setVistaActual('login')} />}
       {vistaActual === 'recuperar' && <RecuperarPassword irALogin={() => setVistaActual('login')} />}
       {vistaActual === 'menu' && <MenuRecetario usuario={usuario} onLogout={handleLogout} onActualizarUsuario={handleActualizarUsuario} />}
-      <Footer />
     </div>
   )
 }
