@@ -3,7 +3,7 @@ import React from 'react';
 const ProfileView = ({ usuario, onActualizarUsuario }) => {
   const [nombre, setNombre] = React.useState(usuario?.nombre || 'Alejandro Rodríguez');
   const [email, setEmail] = React.useState(usuario?.email || 'alejandro.rod@venia.com');
-  const [usuarioName, setUsuarioName] = React.useState(usuario?.nombre_usuario || '@alejandro_cocina');
+  const [telefono, setTelefono] = React.useState(usuario?.telefono || '');
   const [bio, setBio] = React.useState(usuario?.bio || "Searching for the perfect masa. Born in Caracas, living for the aroma of freshly toasted cacao. Always looking for ways to modernise grandmother's recipes with AI precision.");
   const [dietaryStyle, setDietaryStyle] = React.useState(['Amo la arepa', 'Sin gluten', 'Fan del picante', 'Vegetariano']);
   const [selectedTags, setSelectedTags] = React.useState(['Amo la arepa', 'Fan del picante']);
@@ -34,7 +34,7 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
 
   const handleSave = () => {
     if (onActualizarUsuario) {
-      onActualizarUsuario({ ...usuario, nombre, email, bio, preferencias_dieteticas: selectedTags.join(', ') });
+      onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: selectedTags.join(', ') });
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
     }
@@ -129,10 +129,11 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>USERNAME</label>
+                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>TELÉFONO</label>
                 <input 
-                  type="text" value={usuarioName} onChange={(e) => setUsuarioName(e.target.value)}
+                  type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)}
                   style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
+                  placeholder="Ej: +58 412-1234567"
                 />
               </div>
             </div>

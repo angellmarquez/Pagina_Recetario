@@ -171,7 +171,7 @@ router.post('/registro', async (req, res) => {
 // Ruta para actualizar perfil (preferencias y nombre)
 router.put('/perfil/:id', (req, res) => {
     const { id } = req.params;
-    let { preferencias_dieteticas, nombre } = req.body;
+    let { preferencias_dieteticas, nombre, telefono } = req.body;
 
     if (!id || isNaN(id)) {
         return res.status(400).json({ success: false, mensaje: 'ID de usuario inválido' });
@@ -180,9 +180,15 @@ router.put('/perfil/:id', (req, res) => {
     const updates = [];
     const values = [];
 
+
     if (preferencias_dieteticas !== undefined && preferencias_dieteticas !== null) {
         updates.push('preferencias_dieteticas = ?');
         values.push(encrypt(preferencias_dieteticas.toString().trim()));
+    }
+
+    if (telefono !== undefined && telefono !== null && telefono.toString().trim() !== '') {
+        updates.push('telefono = ?');
+        values.push(encrypt(telefono.toString().trim()));
     }
 
     if (nombre !== undefined && nombre !== null && nombre.toString().trim() !== '') {

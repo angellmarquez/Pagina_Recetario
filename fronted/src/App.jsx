@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import Landing from './carpeta_landing/Landing'
 import Login from './carpeta_login/Login'
@@ -5,6 +6,7 @@ import Registro from './carpeta_creacion_usuario/Registro'
 import MenuRecetario from './carpeta_front/MenuRecetario'
 import RecuperarPassword from './carpeta_recuperacion/RecuperarPassword'
 import Footer from './carpeta_comun/Footer'
+import { apiActualizarPerfil } from './carpeta_front/services/apiService';
 
 
 function App() {
@@ -33,10 +35,26 @@ function App() {
     localStorage.removeItem('venia_usuario');
   };
 
-  const handleActualizarUsuario = (nuevosDatos) => {
-    const actualizado = { ...usuario, ...nuevosDatos };
-    setUsuario(actualizado);
-    localStorage.setItem('venia_usuario', JSON.stringify(actualizado));
+  // Actualiza el usuario tanto en backend como en frontend
+  const handleActualizarUsuario = async (nuevosDatos) => {
+    if (!usuario?.id_usuario) return;
+    // Llama a la API para actualizar en la base de datos
+    try {
+      const res = await apiActualizarPerfil(
+        usuario.id_usuario,
+        nuevosDatos.preferencias_dieteticas,
+        nuevosDatos.nombre
+      );
+      if (res.success) {
+        const actualizado = { ...usuario, ...nuevosDatos };
+        setUsuario(actualizado);
+        localStorage.setItem('venia_usuario', JSON.stringify(actualizado));
+      } else {
+        alert('No se pudo actualizar el perfil: ' + (res.mensaje || 'Error desconocido'));
+      }
+    } catch (e) {
+      alert('Error de conexión al actualizar el perfil');
+    }
   };
 
   return (
