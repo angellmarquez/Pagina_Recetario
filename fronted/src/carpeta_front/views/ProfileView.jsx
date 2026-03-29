@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const ProfileView = ({ usuario, onActualizarUsuario }) => {
@@ -5,36 +6,53 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
   const [email, setEmail] = React.useState(usuario?.email || 'alejandro.rod@venia.com');
   const [telefono, setTelefono] = React.useState(usuario?.telefono || '');
   const [bio, setBio] = React.useState(usuario?.bio || "Searching for the perfect masa. Born in Caracas, living for the aroma of freshly toasted cacao. Always looking for ways to modernise grandmother's recipes with AI precision.");
-  const [dietaryStyle, setDietaryStyle] = React.useState(['Amo la arepa', 'Sin gluten', 'Fan del picante', 'Vegetariano']);
-  const [selectedTags, setSelectedTags] = React.useState(['Amo la arepa', 'Fan del picante']);
+  // Adaptar a array de objetos {nombre, activo}
+  const initialDietary = React.useMemo(() => {
+    if (Array.isArray(usuario?.preferencias_dieteticas)) {
+      // Si ya es array de objetos
+      if (typeof usuario.preferencias_dieteticas[0] === 'object') return usuario.preferencias_dieteticas;
+      // Si es array de strings
+      return usuario.preferencias_dieteticas.map(nombre => ({ nombre, activo: true }));
+    }
+    return [
+      { nombre: 'Amo la arepa', activo: true },
+      { nombre: 'Sin gluten', activo: false },
+      { nombre: 'Fan del picante', activo: true },
+      { nombre: 'Vegetariano', activo: false }
+    ];
+  }, [usuario]);
+  const [dietaryStyle, setDietaryStyle] = React.useState(initialDietary);
   const [isAdding, setIsAdding] = React.useState(false);
   const [newTagInput, setNewTagInput] = React.useState('');
   const [isSaved, setIsSaved] = React.useState(false);
 
-  const toggleTag = (tag) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
+  // Alternar estado activo/inactivo
+  const toggleTag = (tagNombre) => {
+    setDietaryStyle(prev => prev.map(tag =>
+      tag.nombre === tagNombre ? { ...tag, activo: !tag.activo } : tag
+    ));
   };
 
-  const removeTagFromList = (tag, e) => {
+  // Eliminar tag
+  const removeTagFromList = (tagNombre, e) => {
     e.stopPropagation();
-    setDietaryStyle(prev => prev.filter(t => t !== tag));
-    setSelectedTags(prev => prev.filter(t => t !== tag));
+    setDietaryStyle(prev => prev.filter(tag => tag.nombre !== tagNombre));
   };
 
+  // Agregar nuevo tag
   const handleAddTag = () => {
-    if (newTagInput.trim() && !dietaryStyle.includes(newTagInput.trim())) {
-      setDietaryStyle([...dietaryStyle, newTagInput.trim()]);
-      setSelectedTags([...selectedTags, newTagInput.trim()]);
+    const nombre = newTagInput.trim();
+    if (nombre && !dietaryStyle.some(tag => tag.nombre === nombre)) {
+      setDietaryStyle([...dietaryStyle, { nombre, activo: true }]);
       setNewTagInput('');
       setIsAdding(false);
     }
   };
 
+  // Guardar cambios
   const handleSave = () => {
     if (onActualizarUsuario) {
-      onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: selectedTags.join(', ') });
+      onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
     }
@@ -164,23 +182,24 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: 'auto' }}>
               {dietaryStyle.map(tag => (
-                <div key={tag} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <div key={tag.nombre} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <button 
-                    onClick={() => toggleTag(tag)}
+                    onClick={() => toggleTag(tag.nombre)}
                     style={{ 
                       padding: '10px 28px 10px 18px', borderRadius: '30px', border: 'none',
-                      background: selectedTags.includes(tag) ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                      color: selectedTags.includes(tag) ? 'var(--on-primary)' : 'var(--text-secondary)',
+                      background: tag.activo ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                      color: tag.activo ? 'var(--on-primary)' : 'var(--text-secondary)',
                       fontWeight: '800', fontSize: '13px', cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)', position: 'relative'
+                      transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)', position: 'relative',
+                      opacity: tag.activo ? 1 : 0.5
                     }}>
-                    {tag}
+                    {tag.nombre}
                   </button>
                   <button 
-                    onClick={(e) => removeTagFromList(tag, e)}
+                    onClick={(e) => removeTagFromList(tag.nombre, e)}
                     style={{
                       position: 'absolute', right: '10px', background: 'transparent', border: 'none',
-                      color: selectedTags.includes(tag) ? 'var(--on-primary)' : 'var(--text-muted)',
+                      color: tag.activo ? 'var(--on-primary)' : 'var(--text-muted)',
                       fontSize: '16px', cursor: 'pointer', opacity: 0.6, fontWeight: '900'
                     }}
                   >
@@ -188,7 +207,6 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
                   </button>
                 </div>
               ))}
-              
               {isAdding ? (
                 <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '5px' }}>
                   <input 

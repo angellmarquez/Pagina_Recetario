@@ -88,13 +88,31 @@ router.post('/login', (req, res) => {
                 const match = await bcrypt.compare(password, user.password);
 
                 if (match) {
-                    // Desencreptamos los datos antes de enviarlos al frontend
+                    // Desencriptar preferencias_dieteticas y parsear JSON si es posible
+                    let preferencias = decrypt(user.preferencias_dieteticas);
+                    let preferenciasParsed = preferencias;
+                    try {
+                        preferenciasParsed = JSON.parse(preferencias);
+                        // Si es un array de strings, convertir a array de objetos {nombre, activo}
+                        if (Array.isArray(preferenciasParsed) && typeof preferenciasParsed[0] === 'string') {
+                            preferenciasParsed = preferenciasParsed.map(nombre => ({ nombre, activo: true }));
+                        }
+                        // Si es un string separado por comas, convertir a array de objetos
+                        if (typeof preferenciasParsed === 'string') {
+                            preferenciasParsed = preferenciasParsed.split(',').map(nombre => ({ nombre: nombre.trim(), activo: true }));
+                        }
+                    } catch (e) {
+                        // Si no es JSON, intentar parsear como string separado por comas
+                        if (typeof preferencias === 'string') {
+                            preferenciasParsed = preferencias.split(',').map(nombre => ({ nombre: nombre.trim(), activo: true }));
+                        }
+                    }
                     const userLimpio = {
                         ...user,
                         nombre: decrypt(user.nombre),
                         email: decrypt(user.email),
                         telefono: decrypt(user.telefono),
-                        preferencias_dieteticas: decrypt(user.preferencias_dieteticas)
+                        preferencias_dieteticas: preferenciasParsed
                     };
                     res.json({ success: true, mensaje: 'Login exitoso', usuario: userLimpio });
                 } else {
@@ -112,7 +130,7 @@ router.post('/login', (req, res) => {
 
 // Ruta para Registrar una Cuenta Nueva
 router.post('/registro', async (req, res) => {
-    let { nombre, email, password, telefono } = req.body;
+    let { nombre, email, password, telefono, preferencias_dieteticas } = req.body;
 
     if (!nombre || !email || !password) {
         return res.status(400).json({ success: false, mensaje: 'Nombre, Email y Contraseña obligatorios' });
@@ -151,8 +169,26 @@ router.post('/registro', async (req, res) => {
         const eEmail = encrypt(email);
         const eTelefono = encrypt(telefono);
 
-        const query = 'INSERT INTO usuarios (nombre, email, password, telefono) VALUES (?, ?, ?, ?)';
-        connection.query(query, [eNombre, eEmail, hashedPassword, eTelefono || null], (err, results) => {
+        // Procesar preferencias_dieteticas como JSON
+        let preferencias = '';
+        if (preferencias_dieteticas !== undefined && preferencias_dieteticas !== null) {
+            if (Array.isArray(preferencias_dieteticas)) {
+                if (preferencias_dieteticas.length > 0 && typeof preferencias_dieteticas[0] === 'string') {
+                    preferencias = JSON.stringify(preferencias_dieteticas.map(nombre => ({ nombre, activo: true })));
+                } else {
+                    preferencias = JSON.stringify(preferencias_dieteticas);
+                }
+            } else if (typeof preferencias_dieteticas === 'object') {
+                preferencias = JSON.stringify(preferencias_dieteticas);
+            } else if (typeof preferencias_dieteticas === 'string') {
+                preferencias = JSON.stringify(preferencias_dieteticas.split(',').map(nombre => ({ nombre: nombre.trim(), activo: true })));
+            } else {
+                preferencias = '';
+            }
+        }
+
+        const query = 'INSERT INTO usuarios (nombre, email, password, telefono, preferencias_dieteticas) VALUES (?, ?, ?, ?, ?)';
+        connection.query(query, [eNombre, eEmail, hashedPassword, eTelefono || null, encrypt(preferencias)], (err, results) => {
             if (err) {
                 console.error("Register Query Error:", err);
                 if (err.code === 'ER_DUP_ENTRY') {
@@ -182,8 +218,19 @@ router.put('/perfil/:id', (req, res) => {
 
 
     if (preferencias_dieteticas !== undefined && preferencias_dieteticas !== null) {
+        // Si es un array de objetos {nombre, activo}, guardar como JSON
+        let prefString = preferencias_dieteticas;
+        if (Array.isArray(preferencias_dieteticas)) {
+            // Si es array de strings, convertir a objetos
+            if (typeof preferencias_dieteticas[0] === 'string') {
+                prefString = preferencias_dieteticas.map(nombre => ({ nombre, activo: true }));
+            }
+            prefString = JSON.stringify(prefString);
+        } else if (typeof preferencias_dieteticas === 'object') {
+            prefString = JSON.stringify(preferencias_dieteticas);
+        }
         updates.push('preferencias_dieteticas = ?');
-        values.push(encrypt(preferencias_dieteticas.toString().trim()));
+        values.push(encrypt(prefString.toString().trim()));
     }
 
     if (telefono !== undefined && telefono !== null && telefono.toString().trim() !== '') {
