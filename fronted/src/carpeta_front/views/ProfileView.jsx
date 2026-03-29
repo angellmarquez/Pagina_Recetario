@@ -5,7 +5,9 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
   const [nombre, setNombre] = React.useState(usuario?.nombre || 'Alejandro Rodríguez');
   const [email, setEmail] = React.useState(usuario?.email || 'alejandro.rod@venia.com');
   const [telefono, setTelefono] = React.useState(usuario?.telefono || '');
-  const [bio, setBio] = React.useState(usuario?.bio || "Searching for the perfect masa. Born in Caracas, living for the aroma of freshly toasted cacao. Always looking for ways to modernise grandmother's recipes with AI precision.");
+  const [bio, setBio] = React.useState(
+    usuario?.bio !== undefined && usuario?.bio !== null ? usuario.bio : ''
+  );
   // Adaptar a array de objetos {nombre, activo}
   const initialDietary = React.useMemo(() => {
     if (Array.isArray(usuario?.preferencias_dieteticas)) {
@@ -25,6 +27,7 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
   const [isAdding, setIsAdding] = React.useState(false);
   const [newTagInput, setNewTagInput] = React.useState('');
   const [isSaved, setIsSaved] = React.useState(false);
+  const [errores, setErrores] = React.useState({});
 
   // Alternar estado activo/inactivo
   const toggleTag = (tagNombre) => {
@@ -49,8 +52,43 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
     }
   };
 
+  // Validaciones para nombre, teléfono y correo
+  // Guardar cambios original sin validaciones personalizadas
+
+  // Validación de campos
+  const validarCampos = () => {
+    const nuevosErrores = {};
+    // Nombre
+    if (!nombre || nombre.trim().length === 0) {
+      nuevosErrores.nombre = 'El nombre es obligatorio.';
+    } else if (nombre.length > 30) {
+      nuevosErrores.nombre = 'El nombre no puede tener más de 30 caracteres.';
+    } else if (/[0-9]/.test(nombre)) {
+      nuevosErrores.nombre = 'El nombre no puede contener números.';
+    }
+    // Bio
+    if (bio.length > 50) {
+      nuevosErrores.bio = 'La bio no puede tener más de 50 caracteres.';
+    }
+    // Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || email.trim().length === 0) {
+      nuevosErrores.email = 'El email es obligatorio.';
+    } else if (!emailRegex.test(email)) {
+      nuevosErrores.email = 'El email no es válido.';
+    }
+    // Teléfono
+    if (telefono && telefono.length > 0 && !/^\d{11}$/.test(telefono)) {
+      nuevosErrores.telefono = 'El teléfono debe tener exactamente 11 números.';
+    }
+    return nuevosErrores;
+  };
+
   // Guardar cambios
   const handleSave = () => {
+    const nuevosErrores = validarCampos();
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length > 0) return;
     if (onActualizarUsuario) {
       onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
       setIsSaved(true);
@@ -127,12 +165,21 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
                 position: 'absolute', bottom: '4px', right: '4px', width: '34px', height: '34px', borderRadius: '10px', 
                 background: 'var(--primary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
               }}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--on-primary)"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--on-primary)"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               </button>
             </div>
             <div>
-              <h3 style={{ fontSize: '32px', margin: '0 0 5px', fontWeight: '900', letterSpacing: '-0.5px' }}>Cacao Enthusiast</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: 0, fontWeight: '500' }}>Member since October 2023</p>
+              <h3 style={{ fontSize: '32px', margin: '0 0 5px', fontWeight: '900', letterSpacing: '-0.5px' }}>{nombre}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: 0, fontWeight: '500' }}>
+                {(() => {
+                  if (usuario?.fecha_creacion) {
+                    const fecha = new Date(usuario.fecha_creacion);
+                    const year = fecha.getFullYear();
+                    return `Miembro desde ${year}`;
+                  }
+                  return 'Miembro desde año desconocido';
+                })()}
+              </p>
             </div>
           </div>
 
@@ -143,31 +190,40 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
                 <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>FULL NAME</label>
                 <input 
                   type="text" value={nombre} onChange={(e) => setNombre(e.target.value)}
+                  maxLength={30}
                   style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
                 />
+                {errores.nombre && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.nombre}</div>}
               </div>
               <div>
                 <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>TELÉFONO</label>
                 <input 
-                  type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)}
+                  type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                  maxLength={11}
                   style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
-                  placeholder="Ej: +58 412-1234567"
+                  placeholder="Ej: 04121234567"
                 />
+                {errores.telefono && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.telefono}</div>}
               </div>
             </div>
             <div style={{ marginBottom: '35px' }}>
               <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>EMAIL ADDRESS</label>
               <input 
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                maxLength={50}
                 style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
               />
+              {errores.email && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.email}</div>}
+
             </div>
             <div>
               <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>BIO & CULINARY INTEREST</label>
               <textarea 
                 value={bio} onChange={(e) => setBio(e.target.value)}
+                maxLength={50}
                 style={{ width: '100%', padding: '24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', minHeight: '140px', resize: 'vertical', fontSize: '16px', lineHeight: '1.7', boxSizing: 'border-box' }}
               />
+              {errores.bio && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.bio}</div>}
             </div>
           </div>
         </div>

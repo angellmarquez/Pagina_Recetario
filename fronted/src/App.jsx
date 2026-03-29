@@ -38,15 +38,17 @@ function App() {
   // Actualiza el usuario tanto en backend como en frontend
   const handleActualizarUsuario = async (nuevosDatos) => {
     if (!usuario?.id_usuario) return;
-    // Llama a la API para actualizar en la base de datos
     try {
       const res = await apiActualizarPerfil(
         usuario.id_usuario,
         nuevosDatos.preferencias_dieteticas,
-        nuevosDatos.nombre
+        nuevosDatos.nombre,
+        nuevosDatos.telefono,
+        nuevosDatos.bio,
+        nuevosDatos.email
       );
       if (res.success) {
-        const actualizado = { ...usuario, ...nuevosDatos };
+        const actualizado = res.usuario ? res.usuario : { ...usuario, ...nuevosDatos };
         setUsuario(actualizado);
         localStorage.setItem('venia_usuario', JSON.stringify(actualizado));
       } else {

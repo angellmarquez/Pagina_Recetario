@@ -34,13 +34,14 @@ connection.connect((err) => {
                     password VARCHAR(255) NOT NULL,
                     telefono VARCHAR(255),
                     preferencias_dieteticas VARCHAR(255),
-                    nivel_experiencia VARCHAR(50)
+                    nivel_experiencia VARCHAR(50),
+                    bio TEXT
                 )
             `;
             connection.query(tablaUsuarios, (err) => {
                 if (err) throw err;
 
-                // pajustar columnas si la tabla es vieja
+                // Ajustar columnas si la tabla es vieja
                 connection.query("ALTER TABLE usuarios MODIFY COLUMN nombre VARCHAR(255)");
                 connection.query("ALTER TABLE usuarios MODIFY COLUMN email VARCHAR(255)");
                 connection.query("SHOW COLUMNS FROM usuarios LIKE 'telefono'", (err, results) => {
@@ -49,6 +50,19 @@ connection.connect((err) => {
                         connection.query("ALTER TABLE usuarios ADD COLUMN telefono VARCHAR(255) AFTER password");
                     } else {
                         connection.query("ALTER TABLE usuarios MODIFY COLUMN telefono VARCHAR(255)");
+                    }
+                });
+                connection.query("SHOW COLUMNS FROM usuarios LIKE 'bio'", (err, results) => {
+                    if (err) throw err;
+                    if (results.length === 0) {
+                        connection.query("ALTER TABLE usuarios ADD COLUMN bio TEXT AFTER nivel_experiencia");
+                    }
+                });
+                // Eliminar columna interes_culinario si existe
+                connection.query("SHOW COLUMNS FROM usuarios LIKE 'interes_culinario'", (err, results) => {
+                    if (err) throw err;
+                    if (results.length > 0) {
+                        connection.query("ALTER TABLE usuarios DROP COLUMN interes_culinario");
                     }
                 });
 

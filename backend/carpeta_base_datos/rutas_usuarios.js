@@ -112,7 +112,9 @@ router.post('/login', (req, res) => {
                         nombre: decrypt(user.nombre),
                         email: decrypt(user.email),
                         telefono: decrypt(user.telefono),
-                        preferencias_dieteticas: preferenciasParsed
+                        preferencias_dieteticas: preferenciasParsed,
+                        bio: user.bio ? user.bio : '',
+                        fecha_creacion: user.fecha_creacion || null
                     };
                     res.json({ success: true, mensaje: 'Login exitoso', usuario: userLimpio });
                 } else {
@@ -130,7 +132,7 @@ router.post('/login', (req, res) => {
 
 // Ruta para Registrar una Cuenta Nueva
 router.post('/registro', async (req, res) => {
-    let { nombre, email, password, telefono, preferencias_dieteticas } = req.body;
+    let { nombre, email, password, telefono, preferencias_dieteticas, bio } = req.body;
 
     if (!nombre || !email || !password) {
         return res.status(400).json({ success: false, mensaje: 'Nombre, Email y Contraseña obligatorios' });
@@ -187,8 +189,11 @@ router.post('/registro', async (req, res) => {
             }
         }
 
-        const query = 'INSERT INTO usuarios (nombre, email, password, telefono, preferencias_dieteticas) VALUES (?, ?, ?, ?, ?)';
-        connection.query(query, [eNombre, eEmail, hashedPassword, eTelefono || null, encrypt(preferencias)], (err, results) => {
+        // Guardar bio (no encriptada)
+        const bioValue = bio ? bio.toString().trim() : '';
+
+        const query = 'INSERT INTO usuarios (nombre, email, password, telefono, preferencias_dieteticas, bio) VALUES (?, ?, ?, ?, ?, ?)';
+        connection.query(query, [eNombre, eEmail, hashedPassword, eTelefono || null, encrypt(preferencias), bioValue], (err, results) => {
             if (err) {
                 console.error("Register Query Error:", err);
                 if (err.code === 'ER_DUP_ENTRY') {
@@ -207,7 +212,7 @@ router.post('/registro', async (req, res) => {
 // Ruta para actualizar perfil (preferencias y nombre)
 router.put('/perfil/:id', (req, res) => {
     const { id } = req.params;
-    let { preferencias_dieteticas, nombre, telefono } = req.body;
+    let { preferencias_dieteticas, nombre, telefono, bio, email } = req.body;
 
     if (!id || isNaN(id)) {
         return res.status(400).json({ success: false, mensaje: 'ID de usuario inválido' });
@@ -243,6 +248,16 @@ router.put('/perfil/:id', (req, res) => {
         values.push(encrypt(nombre.toString().trim()));
     }
 
+    if (email !== undefined && email !== null && email.toString().trim() !== '') {
+        updates.push('email = ?');
+        values.push(encrypt(email.toString().trim()));
+    }
+
+    if (bio !== undefined && bio !== null) {
+        updates.push('bio = ?');
+        values.push(bio.toString().trim());
+    }
+
     if (updates.length === 0) {
         return res.status(400).json({ success: false, mensaje: 'No hay datos para actualizar' });
     }
@@ -252,7 +267,40 @@ router.put('/perfil/:id', (req, res) => {
 
     connection.query(query, values, (err, results) => {
         if (err) return res.status(500).json({ success: false, mensaje: 'Error al actualizar perfil' });
-        res.json({ success: true, mensaje: 'Perfil actualizado' });
+        // Obtener el usuario actualizado y devolverlo
+        connection.query('SELECT * FROM usuarios WHERE id_usuario = ?', [id], (err2, results2) => {
+            if (err2 || !results2 || results2.length === 0) {
+                return res.json({ success: true, mensaje: 'Perfil actualizado', usuario: null });
+            }
+            const user = results2[0];
+            // Desencriptar campos
+            const { decrypt } = require('./encryption');
+            let preferencias = decrypt(user.preferencias_dieteticas);
+            let preferenciasParsed = preferencias;
+            try {
+                preferenciasParsed = JSON.parse(preferencias);
+                if (Array.isArray(preferenciasParsed) && typeof preferenciasParsed[0] === 'string') {
+                    preferenciasParsed = preferenciasParsed.map(nombre => ({ nombre, activo: true }));
+                }
+                if (typeof preferenciasParsed === 'string') {
+                    preferenciasParsed = preferenciasParsed.split(',').map(nombre => ({ nombre: nombre.trim(), activo: true }));
+                }
+            } catch (e) {
+                if (typeof preferencias === 'string') {
+                    preferenciasParsed = preferencias.split(',').map(nombre => ({ nombre: nombre.trim(), activo: true }));
+                }
+            }
+            const userLimpio = {
+                ...user,
+                nombre: decrypt(user.nombre),
+                email: decrypt(user.email),
+                telefono: decrypt(user.telefono),
+                preferencias_dieteticas: preferenciasParsed,
+                bio: user.bio ? user.bio : '',
+                fecha_creacion: user.fecha_creacion || null
+            };
+            res.json({ success: true, mensaje: 'Perfil actualizado', usuario: userLimpio });
+        });
     });
 });
 

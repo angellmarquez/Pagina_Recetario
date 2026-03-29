@@ -41,11 +41,11 @@ export const apiGuardarPlanSemanal = async (id_usuario, planAGuardar, nombre) =>
   return await res.json();
 };
 
-export const apiActualizarPerfil = async (id_usuario, preferencias_dieteticas, nombre) => {
+export const apiActualizarPerfil = async (id_usuario, preferencias_dieteticas, nombre, telefono, bio, email) => {
   const res = await fetch(`${API_BASE_URL}/perfil/${id_usuario}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ preferencias_dieteticas, nombre })
+    body: JSON.stringify({ preferencias_dieteticas, nombre, telefono, bio, email })
   });
   return await res.json();
 };

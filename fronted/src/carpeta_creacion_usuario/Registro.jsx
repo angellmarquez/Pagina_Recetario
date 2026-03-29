@@ -10,28 +10,42 @@ const Registro = ({ alCompletar, irALogin }) => {
   
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' }); // tipo: 'error' o 'exito'
 
+
   const registrarCuenta = async (e) => {
     e.preventDefault();
+    // Validación nombre
+    const nombreValido = /^[a-zA-ZÁ-ÿ\s]{1,25}$/;
     if (!nombre || !email || !password) {
       setMensaje({ texto: 'Nombre, Email y Contraseña son obligatorios.', tipo: 'error' });
       return;
     }
-
-    if (!email.endsWith('@gmail.com') && !email.endsWith('@hotmail.com')) {
-      setMensaje({ texto: 'El correo debe ser @gmail.com o @hotmail.com.', tipo: 'error' });
+    if (!nombreValido.test(nombre)) {
+      setMensaje({ texto: 'El nombre solo puede tener letras y espacios (máx. 25 caracteres, sin números).', tipo: 'error' });
       return;
     }
 
+    // Validación correo
+    const correoValido = /^[\w-.]+@((gmail|hotmail)\.com)$/i;
+    if (!correoValido.test(email)) {
+      setMensaje({ texto: 'El correo debe ser válido y terminar en @gmail.com o @hotmail.com.', tipo: 'error' });
+      return;
+    }
+
+    // Validación teléfono
     if (telefono && telefono.length !== 11) {
-      setMensaje({ texto: 'Debe tener exactamente 11 números, ej: 04141234567.', tipo: 'error' });
+      setMensaje({ texto: 'El teléfono debe estar vacío o tener exactamente 11 números.', tipo: 'error' });
+      return;
+    }
+    if (telefono && !/^\d{11}$/.test(telefono)) {
+      setMensaje({ texto: 'El teléfono solo puede contener números (11 dígitos).', tipo: 'error' });
       return;
     }
 
+    // Validación contraseña
     if (password.length < 5 || password.length > 20) {
       setMensaje({ texto: 'La contraseña debe tener mínimo 5 caracteres.', tipo: 'error' });
       return;
     }
-
     const regexLetras = /[a-zA-Z]/;
     const regexNumeros = /\d/;
     if (!regexLetras.test(password) || !regexNumeros.test(password)) {
@@ -84,10 +98,11 @@ const Registro = ({ alCompletar, irALogin }) => {
                 </svg>
               </span>
               <input type="text" className="login-input" placeholder="Nombre completo" 
-                maxLength={20}
+                maxLength={25}
                 autoComplete="off"
                 value={nombre} onChange={(e) => { 
-                  const val = e.target.value.replace(/[^a-zA-ZÁ-ÿ\s]/g, '');
+                  // Solo letras y espacios, máximo 25 caracteres
+                  const val = e.target.value.replace(/[^a-zA-ZÁ-ÿ\s]/g, '').slice(0, 25);
                   setNombre(val); 
                   setMensaje({texto:'', tipo:''}); 
                 }} />
@@ -117,7 +132,8 @@ const Registro = ({ alCompletar, irALogin }) => {
                 maxLength={11}
                 autoComplete="off"
                 value={telefono} onChange={(e) => { 
-                  const val = e.target.value.replace(/\D/g, '');
+                  // Solo números, máximo 11 caracteres
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 11);
                   setTelefono(val); 
                   setMensaje({texto:'', tipo:''}); 
                 }} />
