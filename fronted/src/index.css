@@ -1,30 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Manrope:wght@400;500;600;700&display=swap');
+
 :root {
-  --ven-yellow: #FFD700;
-  --ven-blue: #003893;
-  --ven-red: #EF3340;
-  --bg-gradient: radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 0%, transparent 35%),
-                 radial-gradient(circle at 100% 100%, rgba(239, 51, 64, 0.08) 0%, transparent 40%),
-                 radial-gradient(circle at 50% 50%, rgba(0, 56, 147, 0.15) 0%, #020617 100%);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --accent-color: var(--ven-yellow);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
+  /* Design System: The Digital Alchemist’s Kitchen */
   
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: dark;
+  /* Color Palette */
+  --surface: #060e20;
+  --surface-bright: #1f2b49;
+  --surface-container-low: #091328;
+  --surface-container: #0f1930;
+  --surface-container-high: #141f38;
+  --surface-container-highest: #192540;
+  --surface-container-lowest: #000000;
+  
+  --primary: #ffe792;
+  --primary-container: #ffd709;
+  --on-primary: #655400;
+  
+  --secondary: #779afa;
+  --secondary-container: #12419b;
+  --on-secondary-container: #c1cfff;
+  
+  --outline: #6d758c;
+  --outline-variant: #40485d;
+  
+  --error: #ff716c;
+  --on-error: #490006;
+
+  /* Text Colors */
+  --text-primary: #dee5ff;
+  --text-secondary: #a3aac4;
+  --text-inverse: #060e20;
+
+  /* Background Gradients */
+  --bg-gradient: radial-gradient(circle at top right, var(--surface-bright) 0%, var(--surface) 60%, var(--surface-container-lowest) 100%);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(25, 37, 64, 0.4);
+  --glass-border: rgba(109, 117, 140, 0.15); /* Ghost Border */
+  --glass-shadow: 0 30px 60px rgba(0, 0, 0, 0.5); /* Ambient Shadow */
+
+  /* Typography */
+  --font-display: 'Epilogue', sans-serif;
+  --font-body: 'Manrope', sans-serif;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-gradient);
+  background: var(--surface) var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
 }
 
 #root {
@@ -38,26 +72,35 @@ body {
   flex-direction: column;
 }
 
+/* Glassmorphism Classes */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
-  border-radius: 28px;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.glass-card:hover {
+  border-color: rgba(255, 215, 9, 0.3); /* primary container alpha */
+  transform: translateY(-4px);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 231, 146, 0.05); /* Glow */
+}
+
+/* Base Nav (if not using sidebar everywhere) */
 .glass-nav {
-  background: rgba(2, 6, 23, 0.3);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(6, 14, 32, 0.7);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
-/* ANIMACIONES PREMIUM */
+/* Animations Premium */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -65,14 +108,8 @@ body {
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes animateShimmer {
@@ -80,15 +117,19 @@ body {
   100% { background-position: 200% 0; }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
 }
 
-.stagger-1 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.1s; opacity: 0; }
-.stagger-2 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.2s; opacity: 0; }
-.stagger-3 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.3s; opacity: 0; }
-.stagger-4 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.4s; opacity: 0; }
-.stagger-5 { animation: fadeInUp 0.8s ease-out forwards; animation-delay: 0.5s; opacity: 0; }
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.stagger-1 { animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; animation-delay: 0.5s; opacity: 0; }
 
 .shimmer-loading {
   background: linear-gradient(90deg, 
@@ -100,3 +141,17 @@ body {
   animation: animateShimmer 2s infinite linear;
 }
 
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-container);
+}
