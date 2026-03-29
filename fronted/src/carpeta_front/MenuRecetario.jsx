@@ -6,8 +6,9 @@ import SearchView from './views/SearchView';
 import RecipeDetailView from './views/RecipeDetailView';
 import RegionesView from './views/RegionesView';
 import PlanSemanalView from './views/PlanSemanalView';
+import ProfileView from './views/ProfileView';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
-import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta, apiGuardarPlanSemanal, apiActualizarPerfil } from './services/apiService';
+import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta, apiGuardarPlanSemanal } from './services/apiService';
 
 const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [prompt, setPrompt] = useState('');
@@ -21,11 +22,6 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [mensajeGuardado, setMensajeGuardado] = useState('');
   const [recetaActiva, setRecetaActiva] = useState(null);
   const [recetasGuardadasLocales, setRecetasGuardadasLocales] = useState([]);
-  
-  // Perfil
-  const [editandoPerfil, setEditandoPerfil] = useState(false);
-  const [preferenciasInput, setPreferenciasInput] = useState(usuario?.preferencias_dieteticas || '');
-  const [nombreInput, setNombreInput] = useState(usuario?.nombre || '');
 
   useEffect(() => {
     if (seccionActiva === 'guardadas' && usuario?.id_usuario) {
@@ -75,17 +71,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     } catch (err) {} finally { setGuardando(false); }
   };
 
-  const guardarCambiosPerfil = async () => {
-    if (!usuario?.id_usuario) return;
-    try {
-      const data = await apiActualizarPerfil(usuario.id_usuario, preferenciasInput, nombreInput);
-      if (data.success) {
-        if (onActualizarUsuario) onActualizarUsuario({ nombre: nombreInput, preferencias_dieteticas: preferenciasInput });
-        setEditandoPerfil(false);
-        alert('¡Perfil actualizado!');
-      }
-    } catch (err) {}
-  };
+
 
   return (
     <div className="app-container" style={{ background: fondoActivo, minHeight: '100vh', transition: 'background 1.5s ease' }}>
@@ -218,20 +204,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
 
             {/* PERFIL */}
             {seccionActiva === 'perfil' && (
-              <div className="glass-card stagger-2" style={{ padding: '60px', maxWidth: '800px', margin: '0 auto' }}>
-                 <h2 style={{ fontSize: '36px', marginBottom: '30px' }}>Tu Perfil 👤</h2>
-                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '30px', borderRadius: '15px' }}>
-                    <label style={{ fontSize: '16px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px', display: 'block' }}>Nombre:</label>
-                    <input className="glass-card" style={{ width: '100%', padding: '15px 20px', color: 'white', background: 'transparent', marginBottom: '25px', outline: 'none', border: '1px solid rgba(255,255,255,0.2)' }} value={nombreInput} onChange={e => setNombreInput(e.target.value)} />
-                    
-                    <label style={{ fontSize: '16px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px', display: 'block' }}>Preferencias Dietéticas:</label>
-                    <textarea className="glass-card" style={{ width: '100%', padding: '15px 20px', color: 'white', background: 'transparent', marginBottom: '30px', minHeight: '100px', outline: 'none', border: '1px solid rgba(255,255,255,0.2)' }} value={preferenciasInput} onChange={e => setPreferenciasInput(e.target.value)} placeholder="Ej: Soy vegano, o soy alérgico al tomate..." />
-                    
-                    <button onClick={guardarCambiosPerfil} style={{ background: '#FFD700', color: '#000', padding: '15px 40px', borderRadius: '15px', fontWeight: '800', fontSize: '16px', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}>
-                      💾 Guardar Cambios
-                    </button>
-                 </div>
-              </div>
+              <ProfileView usuario={usuario} onActualizarUsuario={onActualizarUsuario} />
             )}
           </div>
         </main>
@@ -243,3 +216,4 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
 };
 
 export default MenuRecetario;
+
