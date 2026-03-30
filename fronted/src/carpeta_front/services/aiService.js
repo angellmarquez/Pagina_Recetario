@@ -64,15 +64,25 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva }) => {
   }
 };
 
-export const generarPlanIA = async ({ pUsuario, prefs, nombre }) => {
-  const promptContextualizado = `Eres VENIA, una abuela venezolana experta en nutrición y cocina típica. 
+export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPersonas, nombre }) => {
+  const promptContextualizado = `Eres VENIA, una abuela venezolana experta en nutrición y cocina típica de todas las regiones de Venezuela. 
   Crea un plan semanal (Lunes a Domingo) de alimentación venezolana balanceada para el usuario ${nombre}.
   
-  REQURIMIENTOS ESPECÍFICOS DEL USUARIO: "${pUsuario}"
-  PREFERENCIAS DIETÉTICAS GENERALES: "${prefs}"
+  DETALLES DEL PLAN:
+  - Número de personas: ${numPersonas}
+  - Restricciones dietéticas: ${dieta || 'Ninguna'}
+  - Regiones preferidas: ${regiones && regiones.length > 0 ? regiones.join(', ') : 'Toda Venezuela'}
+  - Solicitud adicional del usuario: "${promptAdicional}"
+  
+  REGLA DE ORO: Las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
+  Si el usuario eligió regiones específicas, el 80% de los platos deben ser típicos de esas zonas.
   
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con ESTA estructura:
   {
+    "metadatos": {
+      "nombre_sugerido": "Nombre pegajoso para el plan (ej: Semana Criolla Ligera)",
+      "mensaje_abuela": "Un mensaje corto y cariñoso de la abuela sobre este plan."
+    },
     "lunes": { 
       "desayuno": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
       "almuerzo": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
@@ -81,7 +91,7 @@ export const generarPlanIA = async ({ pUsuario, prefs, nombre }) => {
     ... (hasta domingo)
   }
   
-  IMPORTANTE: Las recetas deben ser tradicionales venezolanas, nutritivas y detalladas.`;
+  IMPORTANTE: Las recetas deben ser detalladas e incluir pasos claros.`;
 
   try {
     const chatCompletion = await groq.chat.completions.create({
@@ -95,3 +105,4 @@ export const generarPlanIA = async ({ pUsuario, prefs, nombre }) => {
     throw new Error('Mijo, no pude armar el plan. Inténtalo de nuevo.');
   }
 };
+

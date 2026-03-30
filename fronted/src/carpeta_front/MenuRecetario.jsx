@@ -106,31 +106,41 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
         {/* MAIN PANEL CONTENT - Takes remaining 100% width, avoids squash */}
         <main style={{ flex: 1, padding: '40px 60px', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
           
-          {/* HEADER SECTION (Global Headers) */}
-          {!recetaActiva && seccionActiva !== 'perfil' && seccionActiva !== 'plan' && seccionActiva !== 'regiones' && (
-            <div className="stagger-1" style={{ marginBottom: '60px', textAlign: 'center' }}>
-              <h1 style={{ fontSize: '72px', fontWeight: '900', margin: '0 0 15px', letterSpacing: '-1.5px', color: 'white' }}>
-                ¿Qué hay en el <span style={{ color: 'var(--primary)', textShadow: '0 4px 20px rgba(255,215,0,0.3)' }}>budare</span> hoy?
-              </h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '20px', margin: '0 auto', maxWidth: '700px', lineHeight: '1.6' }}>
-                Genera tu menú ideal utilizando Inteligencia Artificial entrenada con pura sazón venezolana.
-              </p>
-            </div>
-          )}
+          {/* Dynamic Headers removed as they are now part of SearchView */}
+
 
           {/* DYNAMIC VIEWS WRAPPER - Expanding to full remaining content width */}
           <div style={{ width: '100%', flex: 1, position: 'relative' }}>
             
-            {/* SEARCH / NEVERA VIEW MODULE */}
-            {['buscar', 'nevera'].includes(seccionActiva) && !recetaActiva && !cargando && (
-              <SearchView 
-                prompt={prompt} 
-                setPrompt={setPrompt} 
-                generarReceta={generarReceta} 
-                cargando={cargando} 
-                seccionActiva={seccionActiva} 
-              />
+            {/* UNIFIED SEARCH & DISCOVER VIEW */}
+            {['buscar', 'descubrir'].includes(seccionActiva) && !recetaActiva && !cargando && (
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <SearchView 
+                  prompt={prompt} 
+                  setPrompt={setPrompt} 
+                  generarReceta={generarReceta} 
+                  cargando={cargando} 
+                  seccionActiva={seccionActiva} 
+                />
+                
+                <DiscoverFeed 
+                  apiKey={import.meta.env.VITE_GROQ_API_KEY} 
+                  onSelectRecipe={(tit) => { setPrompt(tit); generarReceta(tit); }} 
+                />
+              </div>
             )}
+
+            {/* NEVERA VIEW (Focused) */}
+            {seccionActiva === 'nevera' && !recetaActiva && !cargando && (
+               <SearchView 
+               prompt={prompt} 
+               setPrompt={setPrompt} 
+               generarReceta={generarReceta} 
+               cargando={cargando} 
+               seccionActiva={seccionActiva} 
+             />
+            )}
+
 
             {/* ERROR / IA RESPONSE CHAT BOX */}
             {['buscar', 'nevera'].includes(seccionActiva) && !recetaActiva && !cargando && respuestaIA && (
@@ -170,10 +180,8 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
               </div>
             )}
 
-            {/* DESCUBRIR */}
-            {seccionActiva === 'descubrir' && !recetaActiva && !cargando && (
-              <DiscoverFeed apiKey={import.meta.env.VITE_GROQ_API_KEY} onSelectRecipe={(tit) => { setPrompt(tit); generarReceta(tit); }} />
-            )}
+            {/* DESCUBRIR (handled by unified view above) */}
+
 
             {/* EXPLORAR REGIONES */}
             {seccionActiva === 'regiones' && !recetaActiva && !cargando && (

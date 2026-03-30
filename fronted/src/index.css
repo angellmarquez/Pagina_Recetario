@@ -41,7 +41,11 @@
   /* Typography */
   --font-display: 'Epilogue', sans-serif;
   --font-body: 'Manrope', sans-serif;
+
+  /* Custom Transitions */
+  --transition-smooth: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
 
 body {
   margin: 0;
@@ -101,28 +105,92 @@ input:focus, textarea:focus {
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
 }
 
-/* Animations Premium */
+.generate-btn-premium:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(245, 158, 11, 0.5);
+}
+
+.generate-btn-premium:active {
+  transform: scale(0.98);
+}
+
+/* Stagger Animations */
+.stagger-1 { animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.stagger-2 { animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both; }
+.stagger-3 { animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s both; }
+.stagger-4 { animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
+
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+  from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(30px); }
-  to { opacity: 1; transform: translateX(0); }
+/* Custom Button Styles */
+.btn-gold {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+.btn-gold:hover {
+  background: var(--primary-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(245, 158, 11, 0.3);
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Badge Styles */
+.badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--outline-variant);
-  border-radius: 4px;
+
+.badge-signature { background: rgba(245, 158, 11, 0.2); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-heritage { background: rgba(148, 163, 184, 0.2); color: var(--secondary); border: 1px solid rgba(148, 163, 184, 0.3); }
+.badge-popular { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* Hero Typography */
+.hero-title {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin-bottom: 24px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-container);
+
+.hero-title span {
+  color: var(--primary);
+  font-style: italic;
 }
+
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin-bottom: 40px;
+}
+
+/* Recipe Card Specifics */
+.recipe-card-premium {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.recipe-card-premium:hover {
+  transform: translateY(-10px);
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
+

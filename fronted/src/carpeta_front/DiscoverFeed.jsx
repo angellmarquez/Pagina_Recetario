@@ -12,6 +12,18 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
     dangerouslyAllowBrowser: true,
   });
 
+  const getBadgeType = (idx) => {
+    const types = ['signature', 'heritage', 'popular'];
+    return types[idx % types.length];
+  };
+
+  const getBadgeLabel = (type) => {
+    if (type === 'signature') return 'SIGNATURE';
+    if (type === 'heritage') return 'HERITAGE';
+    if (type === 'popular') return 'POPULAR';
+    return 'CLASSIC';
+  };
+
   const fetchFeed = async (isLoadMore = false) => {
     if (isLoadMore) setCargandoMas(true);
     else setCargando(true);
@@ -22,13 +34,13 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
       Por favor, dame ${isLoadMore ? 'OTRAS ' : ''}6 recetas de platos muy variados y CULTURALMENTE EXACTOS de Venezuela.
       ${isLoadMore ? 'ASEGÚRATE DE QUE SEAN PLATOS DISTINTOS A LOS QUE YA SUGERISTE. NO repitas los más comunes.' : ''}
       Intenta que haya variedad (desayuno, almuerzo, cena, postre, sopa).
-      MUY IMPORTANTE: Usa nombres oficiales e históricos exactos (ej: "Pabellón Criollo", "Asado Negro"). NO inventes nombres ni unas palabras al azar.
-      Devuelve ÚNICAMENTE en formato json (objeto JSON) válido con la siguiente estructura:
+      MUY IMPORTANTE: Usa nombres oficiales e históricos exactos (ej: "Pabellón Criollo", "Asado Negro").
+      Devuelve ÚNICAMENTE en formato json válido:
       {
         "feed": [
           {
-            "titulo": "Nombre del plato (ej: Cachapas con Queso de Mano)",
-            "descripcion_corta": "Breve frase encantadora sobre por qué le gustará este plato al usuario.",
+            "titulo": "Nombre del plato",
+            "descripcion_corta": "Breve frase encantadora.",
             "tiempo": "15 min",
             "tags": ["Desayuno", "Maíz"]
           }
@@ -52,10 +64,10 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
           setFeed(parseado.feed);
         }
       } else {
-        throw new Error("Formato inválido de JSON devuelto por Groq");
+        throw new Error("Formato inválido");
       }
     } catch (err) {
-      console.error("Error al cargar Discover Feed:", err);
+      console.error("Error:", err);
       if (!isLoadMore) setError('Ocurrió un error al cargar las recomendaciones, mijo.');
     } finally {
       if (isLoadMore) setCargandoMas(false);
@@ -64,168 +76,142 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
   };
 
   useEffect(() => {
-    if (feed.length === 0) {
-      fetchFeed();
-    }
+    if (feed.length === 0) fetchFeed();
     // eslint-disable-next-line
   }, [apiKey]);
 
   if (cargando) {
     return (
-      <div style={{ padding: '20px 0', width: '100%' }}>
-        <h2 style={{ color: 'white', fontSize: '24px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          ✨ <span style={{ fontWeight: '800' }}>Para ti hoy</span>
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-          {[1, 2, 3, 4, 5, 6].map((skel) => (
+      <div style={{ padding: '60px 0', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
+          {[1, 2, 3].map((skel) => (
             <div key={skel} style={{
               background: 'rgba(255,255,255,0.03)',
-              borderRadius: '20px',
-              height: '320px',
-              overflow: 'hidden',
+              borderRadius: '28px',
+              height: '450px',
               animation: 'pulse 1.5s infinite ease-in-out'
-            }}>
-              <div style={{ height: '180px', background: 'rgba(255,255,255,0.05)' }}></div>
-              <div style={{ padding: '20px' }}>
-                <div style={{ height: '20px', width: '80%', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginBottom: '10px' }}></div>
-                <div style={{ height: '15px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginBottom: '8px' }}></div>
-                <div style={{ height: '15px', width: '60%', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}></div>
-              </div>
-            </div>
+            }}></div>
           ))}
         </div>
-        <style>{`
-          @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: '#EF3340', fontSize: '18px' }}>{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="fade-in" style={{ padding: '20px 0', width: '100%' }}>
-      <h2 style={{ color: 'white', fontSize: '28px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '800' }}>
-        ✨ Explorar Recetas
-      </h2>
+    <div className="stagger-2" style={{ padding: '60px 0', width: '100%' }}>
+      
+      {/* Section Header */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-        gap: '24px' 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-end',
+        marginBottom: '40px'
       }}>
-        {feed.map((receta, idx) => (
-          <div 
-            key={idx}
-            className="discover-card"
-            onClick={() => onSelectRecipe(receta.titulo)}
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '24px',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 15px 35px rgba(0,0,0,0.3)';
-              e.currentTarget.style.borderColor = 'rgba(255,215,0,0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-            }}
-          >
-            <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-              <img 
-                src={`http://localhost:3000/api/recetas/imagen?q=${encodeURIComponent(receta.titulo)}`} 
-                alt={receta.titulo}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                className="discover-img"
-              />
-              <div style={{
-                position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', 
-                backdropFilter: 'blur(4px)', padding: '4px 10px', borderRadius: '12px', 
-                color: 'white', fontSize: '12px', fontWeight: 'bold'
-              }}>
-                ⏳ {receta.tiempo}
-              </div>
-            </div>
-            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ color: 'white', margin: '0 0 10px 0', fontSize: '20px', fontWeight: '700', lineHeight: '1.3' }}>
-                {receta.titulo}
-              </h3>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', margin: '0 0 16px 0', lineHeight: '1.5', flex: 1 }}>
-                {receta.descripcion_corta}
-              </p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {receta.tags?.map((tag, tIdx) => (
-                  <span key={tIdx} style={{
-                    background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.2)',
-                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600'
-                  }}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
+        <div>
+          <span style={{ 
+            color: 'var(--primary)', 
+            fontSize: '12px', 
+            fontWeight: '800', 
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            display: 'block',
+            marginBottom: '8px'
+          }}>TRADITION & INNOVATION</span>
+          <h2 style={{ fontSize: '36px', fontWeight: '900', margin: 0, color: 'white' }}>Explorar Recetas</h2>
+        </div>
+        
+        <button 
+          onClick={() => fetchFeed()}
+          style={{ 
+            background: 'transparent', 
+            border: 'none', 
+            color: 'var(--primary)', 
+            fontWeight: '700', 
+            fontSize: '15px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 0'
+          }}>
+          View All Classics <span style={{ fontSize: '18px' }}>→</span>
+        </button>
       </div>
 
-      {/* BOTÓN CARGAR MÁS */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+        gap: '40px' 
+      }}>
+        {feed.map((receta, idx) => {
+          const badgeType = getBadgeType(idx);
+          return (
+            <div 
+              key={idx}
+              className="recipe-card-premium"
+              onClick={() => onSelectRecipe(receta.titulo)}
+              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
+            >
+              {/* Image Container */}
+              <div style={{ position: 'relative', height: '350px', overflow: 'hidden' }}>
+                <img 
+                  src={`http://localhost:3000/api/recetas/imagen?q=${encodeURIComponent(receta.titulo)}`} 
+                  alt={receta.titulo}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                
+                {/* Overlay Badges */}
+                <div style={{ position: 'absolute', bottom: '20px', left: '20px', display: 'flex', gap: '10px' }}>
+                  <span className={`badge badge-${badgeType}`}>{getBadgeLabel(badgeType)}</span>
+                  <span className="badge" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    CHEF'S CHOICE
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '30px 0', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: '800' }}>
+                    {receta.titulo}
+                  </h3>
+                  <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: '800', whiteSpace: 'nowrap' }}>
+                    <span style={{ opacity: 0.6, marginRight: '4px' }}>🕒</span> {receta.tiempo}
+                  </span>
+                </div>
+                
+                <p style={{ color: 'var(--text-secondary)', fontSize: '15px', margin: 0, lineHeight: '1.6', marginBottom: '20px' }}>
+                  {receta.descripcion_corta}
+                </p>
+                
+                {/* Tags */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {receta.tags?.slice(0, 2).map((tag, tIdx) => (
+                    <span key={tIdx} style={{
+                      color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em'
+                    }}>
+                      • {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {feed.length > 0 && (
-        <div style={{ textAlign: 'center', marginTop: '40px', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'center', marginTop: '60px' }}>
           <button 
+            className="btn-gold"
             onClick={() => fetchFeed(true)}
             disabled={cargandoMas}
-            style={{
-              padding: '14px 32px',
-              background: cargandoMas ? 'rgba(255,255,255,0.05)' : 'rgba(255, 215, 0, 0.15)',
-              border: `1px solid ${cargandoMas ? 'rgba(255,255,255,0.1)' : '#FFD700'}`,
-              color: cargandoMas ? 'rgba(255,255,255,0.5)' : '#FFD700',
-              borderRadius: '25px',
-              fontSize: '16px',
-              fontWeight: '700',
-              cursor: cargandoMas ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s'
-            }}
-            onMouseOver={(e) => { if(!cargandoMas) { e.currentTarget.style.background = 'rgba(255, 215, 0, 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' } }}
-            onMouseOut={(e) => { if(!cargandoMas) { e.currentTarget.style.background = 'rgba(255, 215, 0, 0.15)'; e.currentTarget.style.transform = 'translateY(0)' } }}
+            style={{ padding: '16px 48px' }}
           >
-            {cargandoMas ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="spinner-small"></span> Cocinando más ideas...
-              </span>
-            ) : "+ Ver más opciones"}
+            {cargandoMas ? "Cocinando más..." : "+ Descubrir más sabores"}
           </button>
         </div>
       )}
-
-      <style>{`
-        .discover-card:hover .discover-img {
-          transform: scale(1.05);
-        }
-        .spinner-small {
-          display: inline-block;
-          width: 16px;
-          height: 16px;
-          border: 2px solid rgba(255,255,255,0.2);
-          border-top-color: white;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };
