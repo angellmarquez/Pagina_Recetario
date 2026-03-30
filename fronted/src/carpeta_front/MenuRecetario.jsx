@@ -222,7 +222,31 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
       {/* GLOBAL FOOTER - Full Width and Below Sidebar/Content */}
       <Footer setSeccionActiva={setSeccionActiva} />
 
-      <Dashboard abierto={dashboardAbierto} onCerrar={() => setDashboardAbierto(false)} usuario={usuario} onLogout={onLogout} apiKey={import.meta.env.VITE_GROQ_API_KEY} />
+      <Dashboard 
+        abierto={dashboardAbierto} 
+        onCerrar={() => setDashboardAbierto(false)} 
+        usuario={usuario} 
+        onLogout={onLogout} 
+        apiKey={import.meta.env.VITE_GROQ_API_KEY} 
+        onSeleccionarReceta={(receta) => {
+          try {
+            const detail = JSON.parse(receta.descripcion);
+            setRecetaActiva(detail);
+            setRespuestaIA(detail.historia);
+            setSeccionActiva('buscar'); 
+            setDashboardAbierto(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } catch (e) {
+            console.error("Error parsing saved recipe:", e);
+          }
+        }}
+        onVerPlanDetallado={(plan) => {
+          // Logic for viewing plan detail if needed, otherwise just close dashboard
+          setSeccionActiva('plan');
+          setDashboardAbierto(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Clock, Users, BarChart3, Flame, ChefHat, Sparkles, ArrowLeft, Utensils } from 'lucide-react';
 
 const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuardado, setRecetaActiva, setPrompt, setRespuestaIA }) => {
   return (
@@ -39,11 +40,29 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
           }}
           onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,215,0,0.2)'; e.currentTarget.style.borderColor = '#FFD700'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(6,14,32,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}>
-          <span>←</span> Volver
+          <ArrowLeft size={18} /> Volver
         </button>
 
         {/* Title Content over Image */}
         <div style={{ position: 'absolute', bottom: '30px', left: '40px', right: '40px', zIndex: 10 }}>
+          {/* Tags / Badges */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '15px', flexWrap: 'wrap' }}>
+            {recetaActiva.tags && recetaActiva.tags.map((tag, i) => (
+              <span key={i} className="badge" style={{ 
+                background: 'rgba(245, 158, 11, 0.15)', 
+                color: '#FFD700', 
+                border: '1px solid rgba(255, 215, 0, 0.3)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {tag}
+              </span>
+            ))}
+          </div>
           <h1 style={{ fontSize: '56px', color: '#FFD700', margin: '0 0 10px', fontWeight: '900', letterSpacing: '-1px', textShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
             {recetaActiva.titulo}
           </h1>
@@ -54,28 +73,51 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
       </div>
 
       {/* METADATA BAR */}
-      <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid var(--glass-border)' }}>
-        <div style={{ flex: 1, padding: '20px 40px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🕒</div>
+      <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--glass-border)' }}>
+        {/* PREP TIME */}
+        <div style={{ flex: 1, padding: '25px 30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '45px', height: '45px', borderRadius: '12px', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFD700' }}>
+            <Clock size={22} />
+          </div>
           <div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Tiempo de Prep.</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: 'white' }}>{recetaActiva.tiempo}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Prep.</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>{recetaActiva.tiempo}</div>
           </div>
         </div>
         <div style={{ width: '1px', background: 'var(--glass-border)' }}></div>
-        <div style={{ flex: 1, padding: '20px 40px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📊</div>
+        
+        {/* DIFFICULTY */}
+        <div style={{ flex: 1, padding: '25px 30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '45px', height: '45px', borderRadius: '12px', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFD700' }}>
+            <BarChart3 size={22} />
+          </div>
           <div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Dificultad</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: 'white' }}>{recetaActiva.dificultad}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Dificultad</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>{recetaActiva.dificultad}</div>
           </div>
         </div>
         <div style={{ width: '1px', background: 'var(--glass-border)' }}></div>
-        <div style={{ flex: 1, padding: '20px 40px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👪</div>
+        
+        {/* PORTIONS */}
+        <div style={{ flex: 1, padding: '25px 30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '45px', height: '45px', borderRadius: '12px', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFD700' }}>
+            <Users size={22} />
+          </div>
           <div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Porciones</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: 'white' }}>{recetaActiva.porciones} porciones</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Porciones</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>{recetaActiva.porciones}</div>
+          </div>
+        </div>
+        <div style={{ width: '1px', background: 'var(--glass-border)' }}></div>
+
+        {/* CALORIES */}
+        <div style={{ flex: 1, padding: '25px 30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '45px', height: '45px', borderRadius: '12px', background: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFD700' }}>
+            <Flame size={22} />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Calorías</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>{recetaActiva.calorias || 'N/A'}</div>
           </div>
         </div>
       </div>
@@ -85,8 +127,8 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
         
         {/* INGREDIENTES */}
         <section style={{ flex: '1', minWidth: '300px' }}>
-          <h2 style={{ color: 'white', fontSize: '28px', borderBottom: '2px solid rgba(255,215,0,0.3)', paddingBottom: '15px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#FFD700' }}>🥗</span> Ingredientes
+          <h2 style={{ color: 'white', fontSize: '24px', borderBottom: '2px solid rgba(255,215,0,0.1)', paddingBottom: '15px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Utensils size={24} style={{ color: '#FFD700' }} /> Ingredientes
           </h2>
           <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '20px', padding: '30px', border: '1px solid var(--glass-border)' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -128,15 +170,15 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
 
         {/* PREPARACION */}
         <section style={{ flex: '2', minWidth: '400px' }}>
-          <h2 style={{ color: 'white', fontSize: '28px', borderBottom: '2px solid rgba(255,215,0,0.3)', paddingBottom: '15px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#FFD700' }}>👨‍🍳</span> ¡A cocinar!
+          <h2 style={{ color: 'white', fontSize: '24px', borderBottom: '2px solid rgba(255,215,0,0.1)', paddingBottom: '15px', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <ChefHat size={24} style={{ color: '#FFD700' }} /> ¡A cocinar!
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
             {recetaActiva.pasos.map((paso, i) => (
               <div key={i} className="glass-card" style={{ display: 'flex', gap: '25px', padding: '30px' }}>
                 <div style={{ 
-                  minWidth: '45px', height: '45px', background: 'rgba(255,215,0,0.15)', border: '1px solid #FFD700', borderRadius: '50%', color: '#FFD700', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900'
+                  minWidth: '45px', height: '45px', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '50%', color: '#FFD700', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '900'
                 }}>
                   {i + 1}
                 </div>
@@ -145,6 +187,33 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
                 </p>
               </div>
             ))}
+
+            {/* CHEF TIPS CARD */}
+            {recetaActiva.consejo_chef && (
+              <div className="glass-card" style={{ 
+                marginTop: '10px', 
+                padding: '35px', 
+                background: 'linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(6,14,32,0.4) 100%)',
+                border: '1px solid rgba(255,215,0,0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{ 
+                  position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1, color: '#FFD700'
+                }}>
+                  <Sparkles size={120} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px', color: '#FFD700' }}>
+                  <Sparkles size={20} />
+                  <span style={{ fontWeight: '800', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '2px' }}>Consejos de la Abuela VenIA</span>
+                </div>
+                <p style={{ 
+                  color: 'rgba(255,255,255,0.95)', fontSize: '18px', fontStyle: 'italic', margin: 0, lineHeight: '1.6', position: 'relative', zIndex: 2
+                }}>
+                  "{recetaActiva.consejo_chef}"
+                </p>
+              </div>
+            )}
           </div>
         </section>
         

@@ -34,10 +34,12 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva }) => {
     "porciones": 4,
     "tiempo": "45 min",
     "dificultad": "Media",
+    "calorias": "320 kcal",
     "ingredientes": ["3 huevos", "2 tazas de harina..."],
     "pasos": ["Enciende la wafflera...", "Agrega la harina..."],
     "recomendaciones": ["Nombre de plato 1", "Nombre de plato 2", "Nombre de plato 3"],
-    "tags": ["Desayuno", "Fácil", "Familiar"]
+    "tags": ["Desayuno", "Tradicional", "Sin Gluten"],
+    "consejo_chef": "Para que la arepa quede bien crocantica, agrégale un chorrito de aceite a la masa antes de armarla."
   }
   
   IMPORTANTE:
