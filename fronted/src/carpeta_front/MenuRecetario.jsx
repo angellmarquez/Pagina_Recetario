@@ -23,6 +23,10 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [mensajeGuardado, setMensajeGuardado] = useState('');
   const [recetaActiva, setRecetaActiva] = useState(null);
   const [recetasGuardadasLocales, setRecetasGuardadasLocales] = useState([]);
+  const [recentRecipes, setRecentRecipes] = useState(() => {
+    const saved = localStorage.getItem('venia_recent_history_v2');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     if (seccionActiva === 'guardadas' && usuario?.id_usuario) {
@@ -50,6 +54,14 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
       } else {
         setRecetaActiva(datosParseados);
         setRespuestaIA(datosParseados.historia);
+        
+        // Add to history if valid
+        const updatedHistory = [
+          datosParseados,
+          ...recentRecipes.filter(r => r.titulo !== datosParseados.titulo)
+        ].slice(0, 6);
+        setRecentRecipes(updatedHistory);
+        localStorage.setItem('venia_recent_history_v2', JSON.stringify(updatedHistory));
       }
     } catch (error) {
       setRespuestaIA(error.message);
@@ -121,6 +133,15 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                   generarReceta={generarReceta} 
                   cargando={cargando} 
                   seccionActiva={seccionActiva} 
+                  recentRecipes={recentRecipes}
+                  onSelectRecipe={(r) => { 
+                    setRecetaActiva(r); 
+                    setRespuestaIA(r.historia); 
+                  }}
+                  onClearHistory={() => {
+                    setRecentRecipes([]);
+                    localStorage.removeItem('venia_recent_history_v2');
+                  }}
                 />
                 
                 <DiscoverFeed 
@@ -132,13 +153,22 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
 
             {/* NEVERA VIEW (Focused) */}
             {seccionActiva === 'nevera' && !recetaActiva && !cargando && (
-               <SearchView 
-               prompt={prompt} 
-               setPrompt={setPrompt} 
-               generarReceta={generarReceta} 
-               cargando={cargando} 
-               seccionActiva={seccionActiva} 
-             />
+                <SearchView 
+                  prompt={prompt} 
+                  setPrompt={setPrompt} 
+                  generarReceta={generarReceta} 
+                  cargando={cargando} 
+                  seccionActiva={seccionActiva} 
+                  recentRecipes={recentRecipes}
+                  onSelectRecipe={(r) => { 
+                    setRecetaActiva(r); 
+                    setRespuestaIA(r.historia); 
+                  }}
+                  onClearHistory={() => {
+                    setRecentRecipes([]);
+                    localStorage.removeItem('venia_recent_history_v2');
+                  }}
+                />
             )}
 
 
