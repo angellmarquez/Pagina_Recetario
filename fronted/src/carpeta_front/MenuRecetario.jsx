@@ -7,6 +7,7 @@ import RecipeDetailView from './views/RecipeDetailView';
 import RegionesView from './views/RegionesView';
 import PlanSemanalView from './views/PlanSemanalView';
 import ProfileView from './views/ProfileView';
+import CountryExplorationView from './views/CountryExplorationView';
 import Footer from './components/Footer';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
 import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta, apiGuardarPlanSemanal } from './services/apiService';
@@ -27,6 +28,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     const saved = localStorage.getItem('venia_recent_history_v2');
     return saved ? JSON.parse(saved) : [];
   });
+  const [paisSeleccionado, setPaisSeleccionado] = useState(null);
 
   useEffect(() => {
     if (seccionActiva === 'guardadas' && usuario?.id_usuario) {
@@ -41,13 +43,19 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     } catch (err) {}
   };
 
-  const generarReceta = async (textoVoz = null) => {
+  const generarReceta = async (textoVoz = null, origin = null) => {
     const textoFinal = textoVoz || prompt;
     if (!textoFinal.trim()) return;
     setCargando(true); setRespuestaIA(''); 
     
     try {
-      const datosParseados = await generarRecetaIA({ textoBase: textoFinal, seccionActiva });
+      const originToUse = origin || (paisSeleccionado?.tipo) || (seccionActiva === 'regiones' ? 'region' : null);
+      const datosParseados = await generarRecetaIA({ 
+        textoBase: textoFinal, 
+        seccionActiva,
+        origin: originToUse,
+        pais: paisSeleccionado?.nombre || paisSeleccionado
+      });
       if (datosParseados.receta_valida === false) {
         setRespuestaIA(datosParseados.historia);
         setRecetaActiva(null);
@@ -215,7 +223,25 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
 
             {/* EXPLORAR REGIONES */}
             {seccionActiva === 'regiones' && !recetaActiva && !cargando && (
-              <RegionesView setPrompt={setPrompt} generarReceta={generarReceta} />
+              <RegionesView 
+                setPrompt={setPrompt} 
+                generarReceta={generarReceta} 
+                setSeccionActiva={setSeccionActiva}
+                setPaisSeleccionado={setPaisSeleccionado}
+              />
+            )}
+
+            {/* EXPLORACION PAIS / ESTADO ESPECIFICO */}
+            {seccionActiva === 'explorar_pais' && !recetaActiva && !cargando && (
+              <CountryExplorationView 
+                pais={paisSeleccionado?.nombre || paisSeleccionado}
+                tipoLugar={paisSeleccionado?.tipo || 'world-map'}
+                prompt={prompt}
+                setPrompt={setPrompt}
+                generarReceta={generarReceta}
+                cargando={cargando}
+                onVolver={() => setSeccionActiva('regiones')}
+              />
             )}
 
             {/* PLAN SEMANAL */}

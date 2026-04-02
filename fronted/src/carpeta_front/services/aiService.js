@@ -6,7 +6,7 @@ const groq = new Groq({
   dangerouslyAllowBrowser: true,
 });
 
-export const generarRecetaIA = async ({ textoBase, origin, seccionActiva }) => {
+export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }) => {
   let basePrompt = "";
 
   if (seccionActiva === 'nevera') {
@@ -14,9 +14,17 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva }) => {
     REGLA DE ORO INQUEBRANTABLE: Analiza ESTRICTAMENTE el texto. Si el texto menciona CUALQUIER COSA que no sea un alimento real y comestible (objetos, personas, tecnología, insultos, bromas), es OBLIGATORIO que rechaces la consulta. ¡NO inventes recetas mágicas con objetos! Si no son ingredientes reales de cocina, debes fallar la validación.
     Si son verdaderos alimentos, sugiérele una receta venezolana que los aproveche.`;
   } else if (origin === 'region') {
-    basePrompt = `Eres VENIA, una abuela venezolana virtual experta en historia y gastronomía tradicional. 
-    El usuario quiere conocer la receta más emblemática del estado: ${textoBase}.
-    REGLA: Devuelve SOLO platos típicos reales de esa región.`;
+    basePrompt = `Eres VENIA, una abuela venezolana virtual experta en historia y gastronomía tradicional de Venezuela. 
+    El usuario está explorando el estado: **${pais}**.
+    Su solicitud específica es: "${textoBase}".
+    Tu tarea es sugerir una receta que sea 100% auténtica del estado **${pais}** y que se relacione con lo que pide el usuario.
+    REGLA DE ORO: Si el plato no es originario del estado **${pais}**, NO lo sugieras. Busca uno que sí lo sea.`;
+  } else if (origin === 'world-map') {
+    basePrompt = `Eres VENIA, una abuela venezolana virtual muy culta y viajera, experta en gastronomía mundial.
+    El usuario está explorando el país: **${pais}**.
+    Su solicitud específica es: "${textoBase}".
+    Tu tarea es sugerir una receta que sea 100% auténtica de **${pais}** y que se relacione con lo que pide el usuario (si pide un ingrediente, úsalo en un plato típico de allí; si pide un plato, dáselo).
+    REGLA DE ORO: Si el plato no es originario de **${pais}**, NO lo sugieras. Busca uno que sí lo sea.`;
   } else {
     basePrompt = `Eres VENIA, una abuela venezolana virtual y experta cocinera de comida típica de Venezuela. 
     Alguien te ha pedido: "${textoBase}".

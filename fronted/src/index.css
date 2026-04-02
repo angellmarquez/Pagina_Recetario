@@ -492,3 +492,48 @@ input:focus, textarea:focus {
   margin-top: 30px;
   width: 100%;
 }
+
+/* Premium Map & Regional Styles */
+.map-container-premium {
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, rgba(10, 15, 29, 0) 70%);
+  border-radius: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: var(--transition-smooth);
+}
+
+.map-container-premium svg {
+  filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+}
+
+.map-container-premium path {
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
+}
+
+.map-container-premium path:hover {
+  stroke-width: 1px !important;
+  stroke: var(--primary) !important;
+  filter: brightness(1.4);
+}
+
+/* Tab/Header Badge Styles refined */
+.hero-badge-premium {
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Glass panel refinement for maps */
+.glass-panel-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel-premium::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  pointer-events: none;
+}
