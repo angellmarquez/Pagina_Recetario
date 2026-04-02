@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { generarPlanIA } from '../services/aiService';
-import { apiGuardarPlanSemanal } from '../services/apiService';
+import { apiGuardarPlanSemanal, apiGuardarReceta } from '../services/apiService';
 
 const PlanSemanalView = ({ usuario }) => {
   // Configuración Inicial de Fecha y Hora
@@ -26,8 +26,9 @@ const PlanSemanalView = ({ usuario }) => {
 
   // Filter states
   const [numPersonas, setNumPersonas] = useState(4);
-  const [dieta, setDieta] = useState('Ninguna');
-  const [regiones, setRegiones] = useState(['llanos', 'oriente']);
+  const [dietaryStyle, setDietaryStyle] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTagInput, setNewTagInput] = useState('');
   const [promptAdicional, setPromptAdicional] = useState('');
   
   // Control states
@@ -35,6 +36,7 @@ const PlanSemanalView = ({ usuario }) => {
   const [planIA, setPlanIA] = useState(null);
   const [errorPlan, setErrorPlan] = useState('');
   const [mensajeExito, setMensajeExito] = useState('');
+  const [selectedMeal, setSelectedMeal] = useState(prioridad);
   
   // Estado para la API de WhatsApp
   const [wasapEnviando, setWasapEnviando] = useState(false);
@@ -43,22 +45,32 @@ const PlanSemanalView = ({ usuario }) => {
   useEffect(() => {
     if (usuario && usuario.preferencias_dieteticas) {
       const prefs = usuario.preferencias_dieteticas;
-      if (Array.isArray(prefs) && prefs.length > 0) {
-        setDieta(prefs[0].nombre || prefs[0]);
+      if (typeof prefs[0] === 'object') {
+        setDietaryStyle(prefs);
+      } else if (Array.isArray(prefs)) {
+        setDietaryStyle(prefs.map(p => ({ nombre: p.nombre || p, activo: true })));
       }
     }
   }, [usuario]);
 
-  const opcionesDieta = ['Sin Gluten', 'Vegano', 'Keto', 'Lactose Free', 'Ninguna'];
-  const opcionesRegiones = [
-    { id: 'llanos', nombre: 'Los Llanos (Savannah)' },
-    { id: 'oriente', nombre: 'Oriente (Coastal)' },
-    { id: 'andes', nombre: 'Andes (Mountain)' }
-  ];
+  const toggleTag = (tagNombre) => {
+    setDietaryStyle(prev => prev.map(tag =>
+      tag.nombre === tagNombre ? { ...tag, activo: !tag.activo } : tag
+    ));
+  };
 
-  const toggleRegion = (regId) => {
-    if (regiones.includes(regId)) setRegiones(regiones.filter(r => r !== regId));
-    else setRegiones([...regiones, regId]);
+  const removeTagFromList = (tagNombre, e) => {
+    e.stopPropagation();
+    setDietaryStyle(prev => prev.filter(tag => tag.nombre !== tagNombre));
+  };
+
+  const handleAddTag = () => {
+    const nombre = newTagInput.trim();
+    if (nombre && !dietaryStyle.some(tag => tag.nombre === nombre)) {
+      setDietaryStyle([...dietaryStyle, { nombre, activo: true }]);
+      setNewTagInput('');
+      setIsAdding(false);
+    }
   };
 
   const generarPlan = async () => {
@@ -66,10 +78,11 @@ const PlanSemanalView = ({ usuario }) => {
     setErrorPlan('');
     setMensajeExito('');
     try {
+      const activeTags = dietaryStyle.filter(t => t.activo).map(t => t.nombre);
       const planGenerado = await generarPlanIA({
         promptAdicional,
-        dieta,
-        regiones,
+        dieta: activeTags.length > 0 ? activeTags.join(', ') : 'Ninguna',
+        regiones: [],
         numPersonas,
         nombre: usuario?.nombre || 'Gourmet',
         fechaActual: formatearFecha(fechaActual),
@@ -79,6 +92,7 @@ const PlanSemanalView = ({ usuario }) => {
       
       if (planGenerado && planGenerado.comidas) {
         setPlanIA(planGenerado);
+        setSelectedMeal(prioridad);
       } else {
         setErrorPlan('Mijo, la abuela se enredó con los cables. Inténtalo de nuevo.');
       }
@@ -98,11 +112,11 @@ const PlanSemanalView = ({ usuario }) => {
 
     setWasapEnviando(true);
     
-    // Preparar el texto a enviar basado en la sugerencia prioritaria sin formato URL
-    const recetaPrioridad = planIA.comidas[prioridad];
+    // Preparar el texto a enviar basado en la receta actualmente visualizada por el usuario
+    const recetaParaEnviar = planIA.comidas[selectedMeal];
     const textoMensaje = `*¡Hola! VENIA te ha preparado este menú para hoy (${formatearFecha(fechaActual)})* 👩🏽‍🍳✨\n\n` +
-      `*🍲 Pluma Principal (${prioridad.toUpperCase()}):* ${recetaPrioridad?.nombre}\n` +
-      `*Ingredientes:* ${recetaPrioridad?.ingredientes?.join(', ')}\n\n` +
+      `*🍲 Pluma Principal (${selectedMeal.toUpperCase()}):* ${recetaParaEnviar?.nombre}\n` +
+      `*Ingredientes:* ${recetaParaEnviar?.ingredientes?.join(', ')}\n\n` +
       `*¡Buen provecho!*`;
 
     try {
@@ -126,6 +140,51 @@ const PlanSemanalView = ({ usuario }) => {
       setWasapEnviando(false);
     }
   };
+
+  const guardarRecetaEnDB = async (tipo, receta) => {
+    if (!usuario?.id_usuario || !receta) return;
+    try {
+      // Adding recipe specific metadata
+      const activeTags = dietaryStyle.filter(t => t.activo).map(t => t.nombre);
+      const recetaGuardar = {
+        ...receta,
+        tiempo: receta.tiempo || "30 min",
+        porciones: numPersonas,
+        tags: [tipo, ...activeTags],
+        historia: planIA?.metadatos?.mensaje_abuela || "Una deliciosa receta generada por VENIA"
+      };
+      
+      const res = await apiGuardarReceta(usuario.id_usuario, receta.nombre, recetaGuardar, '');
+      if (res.status === 201) {
+        setMensajeExito(`¡Receta de ${tipo} guardada exitosamente!`);
+        setTimeout(() => setMensajeExito(''), 4000);
+      } else {
+        throw new Error('Error al guardar');
+      }
+    } catch (error) {
+      setErrorPlan(`Hubo un error al guardar la receta de ${tipo}.`);
+    }
+  };
+
+  const getDiasSemana = () => {
+    const today = fechaActual;
+    const curDay = today.getDay(); // 0(Sun)-6(Sat)
+    const diff = today.getDate() - curDay + (curDay === 0 ? -6 : 1); // Monday
+    const monday = new Date(today.getFullYear(), today.getMonth(), diff);
+    
+    return Array.from({length: 7}, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const isToday = d.toDateString() === today.toDateString();
+      return { 
+        name: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+        date: d.getDate(),
+        isToday,
+        fullDate: d
+      };
+    });
+  };
+  const diasSemana = getDiasSemana();
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', width: '100%', padding: '20px 40px' }}>
@@ -205,97 +264,249 @@ const PlanSemanalView = ({ usuario }) => {
         {/* Card 2: Preferences */}
         <div className="glass-card" style={{ padding: '40px', background: 'rgba(15, 23, 42, 0.4)' }}>
           <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Preferences (From Profile)</p>
-          <h3 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 20px', color: 'white' }}>Dietary restrictions</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {opcionesDieta.map(opt => (
-              <button
-                key={opt}
-                onClick={() => setDieta(dieta === opt ? 'Ninguna' : opt)}
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: '100px',
-                  border: '1px solid',
-                  borderColor: dieta === opt ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                  background: dieta === opt ? 'rgba(245,158,11,0.1)' : 'rgba(5, 8, 18, 0.4)',
-                  color: dieta === opt ? 'var(--primary)' : 'rgba(255,255,255,0.4)',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '700'
-                }}
-              >
-                {opt}
-              </button>
+          <h3 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 20px', color: 'white' }}>Dietary style</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            {dietaryStyle.map(tag => (
+              <div key={tag.nombre} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <button 
+                  onClick={() => toggleTag(tag.nombre)}
+                  style={{ 
+                    padding: '10px 28px 10px 18px', borderRadius: '30px', border: 'none',
+                    background: tag.activo ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                    color: tag.activo ? 'var(--on-primary)' : 'var(--text-secondary)',
+                    fontWeight: '800', fontSize: '13px', cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)', position: 'relative',
+                    opacity: tag.activo ? 1 : 0.5
+                  }}>
+                  {tag.nombre}
+                </button>
+                <button 
+                  onClick={(e) => removeTagFromList(tag.nombre, e)}
+                  style={{
+                    position: 'absolute', right: '10px', background: 'transparent', border: 'none',
+                    color: tag.activo ? 'var(--on-primary)' : 'var(--text-muted)',
+                    fontSize: '16px', cursor: 'pointer', opacity: 0.6, fontWeight: '900'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
             ))}
+            {isAdding ? (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                <input 
+                  autoFocus
+                  value={newTagInput}
+                  onChange={(e) => setNewTagInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                  placeholder="Nueva etiqueta..."
+                  style={{ 
+                    width: '120px', padding: '10px 15px', borderRadius: '15px', 
+                    background: 'rgba(0,0,0,0.4)', border: '1px solid var(--primary)', 
+                    color: 'white', fontSize: '13px', outline: 'none' 
+                  }}
+                />
+                <button 
+                  onClick={handleAddTag}
+                  style={{ 
+                    background: 'var(--primary)', color: 'var(--on-primary)', 
+                    padding: '10px 18px', borderRadius: '15px', border: 'none', 
+                    fontWeight: '800', fontSize: '12px', cursor: 'pointer' 
+                  }}
+                >Add</button>
+                <button onClick={() => setIsAdding(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsAdding(true)}
+                style={{ padding: '10px 20px', borderRadius: '30px', border: '1px dashed rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.4)', background: 'transparent', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
+                + Add Tag
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Card 3: Gastronomy */}
+        {/* Card 3: Custom Prompt */}
         <div className="glass-card" style={{ padding: '40px', background: 'rgba(15, 23, 42, 0.4)', position: 'relative', overflow: 'hidden' }}>
-          <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Gastronomy</p>
-          <h3 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 30px', color: 'white' }}>Preferred regions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {opcionesRegiones.map(reg => (
-              <label key={reg.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: '2px solid', borderColor: regiones.includes(reg.id) ? 'var(--primary)' : 'rgba(255,255,255,0.1)', background: regiones.includes(reg.id) ? 'var(--primary)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                  {regiones.includes(reg.id) && <span style={{ color: 'var(--on-primary)', fontWeight: '900', fontSize: '12px' }}>✓</span>}
-                </div>
-                <input type="checkbox" checked={regiones.includes(reg.id)} onChange={() => toggleRegion(reg.id)} style={{ display: 'none' }} />
-                <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>{reg.nombre}</span>
-              </label>
-            ))}
-          </div>
+          <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Customization</p>
+          <h3 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 20px', color: 'white' }}>Extras</h3>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', marginBottom: '15px' }}>¿Algún antojo o ingrediente a evitar?</p>
+          <textarea 
+            value={promptAdicional}
+            onChange={(e) => setPromptAdicional(e.target.value)}
+            placeholder="Ej. Quiero algo fresco para el calor, sin cebolla..."
+            style={{ 
+              width: '100%', 
+              height: '80px', 
+              background: 'rgba(5, 8, 18, 0.6)', 
+              border: '1px solid rgba(255,255,255,0.1)', 
+              borderRadius: '16px', 
+              padding: '15px', 
+              color: 'white', 
+              fontFamily: 'inherit',
+              resize: 'none'
+            }}
+          />
         </div>
       </div>
 
-      {/* Section: Daily Menu */}
+      {/* Section: The Calendar */}
       <div className="stagger-3" style={{ marginBottom: '80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '48px', fontWeight: '800', margin: 0, color: 'white' }}>Menu del Día</h2>
+          <h2 style={{ fontSize: '48px', fontWeight: '800', margin: 0, color: 'white' }}>The Calendar</h2>
           {planIA && planIA.metadatos && (
             <p style={{ color: 'var(--primary)', fontStyle: 'italic', margin: 0 }}>"{planIA.metadatos.mensaje_abuela}"</p>
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {['desayuno', 'almuerzo', 'cena'].map((tipo) => {
-            const isPriority = prioridad === tipo;
-            const receta = planIA?.comidas?.[tipo];
-
-            return (
-              <div key={tipo} className="glass-card" style={{ 
-                padding: '30px', 
-                background: isPriority ? 'rgba(245, 158, 11, 0.05)' : 'rgba(15, 23, 42, 0.4)',
-                border: isPriority ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
-                 {isPriority && <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'var(--primary)', color: 'var(--on-primary)', padding: '6px 16px', borderRadius: '100px', fontSize: '12px', fontWeight: '900', boxShadow: '0 4px 15px rgba(245,158,11,0.3)' }}>🍽️ SUGERENCIA ACTUAL</div>}
-                 
-                 <div style={{ marginBottom: '20px' }}>
-                   <span style={{ textTransform: 'uppercase', fontSize: '14px', fontWeight: '800', color: isPriority ? 'var(--primary)' : 'rgba(255,255,255,0.5)', letterSpacing: '2px' }}>{tipo}</span>
-                   {receta ? (
-                     <h3 style={{ fontSize: '28px', color: 'white', fontWeight: '700', marginTop: '10px' }}>{receta.nombre}</h3>
-                   ) : (
-                     <h3 style={{ fontSize: '24px', color: 'rgba(255,255,255,0.2)', fontWeight: '700', marginTop: '10px' }}>Esperando IA...</h3>
-                   )}
-                 </div>
-                 
-                 {receta && (
-                   <div style={{ flex: 1 }}>
-                     <div style={{ marginBottom: '20px' }}>
-                       <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 10px' }}>Ingredientes Clave</p>
-                       <ul style={{ paddingLeft: '20px', margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.6' }}>
-                         {receta.ingredientes?.slice(0,4).map((ing, i) => <li key={i}>{ing}</li>)}
-                         {receta.ingredientes?.length > 4 && <li>Y más...</li>}
-                       </ul>
-                     </div>
-                   </div>
-                 )}
+        {/* Calendar Row */}
+        <div style={{ display: 'flex', gap: '15px', marginBottom: '40px' }}>
+          {diasSemana.map((dia, idx) => (
+            <div key={idx} className="glass-card" style={{ 
+              flex: 1, 
+              padding: '20px 15px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              background: dia.isToday ? 'rgba(15, 23, 42, 0.8)' : 'rgba(15, 23, 42, 0.2)',
+              border: dia.isToday ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
+              position: 'relative'
+            }}>
+              {dia.isToday && <div style={{ position: 'absolute', top: '-10px', background: 'var(--primary)', color: 'var(--on-primary)', padding: '4px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: '900' }}>AI PICK</div>}
+              
+              <span style={{ fontSize: '14px', fontWeight: '800', color: dia.isToday ? 'white' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '5px' }}>{dia.name}</span>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '20px' }}>{dia.date}</span>
+              
+              {/* Recipe slots */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                {['desayuno', 'almuerzo', 'cena'].map((tipo) => (
+                  <div key={tipo} style={{ height: '40px', background: !dia.isToday ? 'rgba(5, 8, 18, 0.4)' : (prioridad === tipo ? 'rgba(245, 158, 11, 0.1)' : 'rgba(5, 8, 18, 0.6)'), borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                    {dia.isToday && planIA?.comidas?.[tipo] ? (
+                       <span style={{ fontSize: '11px', fontWeight: '700', color: prioridad === tipo ? 'var(--primary)' : 'rgba(255,255,255,0.8)', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{planIA.comidas[tipo].nombre}</span>
+                    ) : (
+                       <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: '14px' }}>•</span>
+                    )}
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
+
+        {/* Detailed Daily Recipes via Cinematic Tabs */}
+        {planIA && (
+        <div className="glass-card" style={{ padding: '0', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Tabs */}
+          <div style={{ display: 'flex', background: 'rgba(5, 8, 18, 0.6)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            {['desayuno', 'almuerzo', 'cena'].map((tipo) => (
+               <button 
+                 key={tipo}
+                 onClick={() => setSelectedMeal(tipo)}
+                 style={{
+                    flex: 1,
+                    background: selectedMeal === tipo ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    border: 'none',
+                    color: selectedMeal === tipo ? 'white' : 'rgba(255,255,255,0.4)',
+                    fontSize: '16px',
+                    fontWeight: '800',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    padding: '25px',
+                    transition: 'all 0.3s'
+                 }}
+               >
+                 {tipo} {prioridad === tipo && '✨'}
+                 {selectedMeal === tipo && (
+                   <div style={{ position: 'absolute', bottom: 0, left: '20%', width: '60%', height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />
+                 )}
+               </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div style={{ padding: '50px 60px' }}>
+            {planIA.comidas[selectedMeal] ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '60px' }}>
+                {/* Left Col: Info */}
+                <div>
+                   <h3 style={{ fontSize: '42px', color: 'white', fontWeight: '900', margin: '0 0 15px', lineHeight: '1.1', letterSpacing: '-1px' }}>
+                     {planIA.comidas[selectedMeal].nombre}
+                   </h3>
+                   <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+                     <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: '800', background: 'rgba(245,158,11,0.1)', padding: '5px 12px', borderRadius: '100px' }}>
+                       ⏱️ {planIA.comidas[selectedMeal].tiempo || '30 min'}
+                     </span>
+                     <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', fontWeight: '800', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '100px' }}>
+                       👨‍👩‍👧‍👦 {numPersonas} Pax
+                     </span>
+                   </div>
+                   <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: '1.6', marginBottom: '40px' }}>
+                     {planIA.metadatos?.mensaje_abuela}
+                   </p>
+
+                   <button 
+                     onClick={() => guardarRecetaEnDB(selectedMeal, planIA.comidas[selectedMeal])}
+                     style={{ 
+                       background: 'var(--primary)',
+                       border: 'none',
+                       color: 'var(--on-primary)',
+                       padding: '16px 24px',
+                       borderRadius: '100px',
+                       fontWeight: '800',
+                       fontSize: '16px',
+                       cursor: 'pointer',
+                       transition: 'all 0.3s',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       gap: '10px',
+                       width: '100%',
+                       boxShadow: '0 10px 25px rgba(245,158,11,0.3)'
+                     }}
+                   >
+                     <span>💾</span> Guardar Receta
+                   </button>
+                </div>
+
+                {/* Right Col: Ingredients and Steps */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                  <div>
+                     <h4 style={{ color: 'white', fontSize: '18px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       <div style={{ width: '8px', height: '8px', background: 'var(--primary)', borderRadius: '50%' }} />
+                       Ingredientes Clave
+                     </h4>
+                     <ul style={{ paddingLeft: '0', margin: '0', color: 'rgba(255,255,255,0.7)', fontSize: '16px', lineHeight: '1.8', listStyle: 'none' }}>
+                       {planIA.comidas[selectedMeal].ingredientes?.map((ing, i) => (
+                         <li key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px', marginBottom: '10px' }}>✓ {ing}</li>
+                       ))}
+                     </ul>
+                  </div>
+
+                  <div>
+                     <h4 style={{ color: 'white', fontSize: '18px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       <div style={{ width: '8px', height: '8px', background: 'var(--primary)', borderRadius: '50%' }} />
+                       Preparación
+                     </h4>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                       {planIA.comidas[selectedMeal].pasos?.map((paso, i) => (
+                         <div key={i} style={{ display: 'flex', gap: '15px', background: 'rgba(15,23,42,0.6)', padding: '20px', borderRadius: '16px' }}>
+                           <div style={{ color: 'var(--primary)', fontWeight: '900', fontSize: '18px' }}>{i + 1}.</div>
+                           <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', lineHeight: '1.6' }}>{paso}</div>
+                         </div>
+                       ))}
+                     </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+               <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', padding: '50px 0' }}>
+                 <h3 style={{ fontSize: '24px', fontWeight: '700' }}>Esperando a la abuela...</h3>
+               </div>
+            )}
+          </div>
+        </div>
+        )}
       </div>
     </div>
   );

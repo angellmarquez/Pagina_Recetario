@@ -2,7 +2,7 @@ import React from 'react';
 import arepaBg from '../../assets/arepas-4.jpg';
 
 // Helper to get a professional image for Venezuelan dishes
-const getRecipeImage = (titulo) => {
+export const getRecipeImage = (titulo) => {
   const t = titulo.toLowerCase();
   if (t.includes('arepa')) return 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?q=80&w=600&auto=format&fit=crop';
   if (t.includes('pabellon') || t.includes('pabellón')) return 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?q=80&w=600&auto=format&fit=crop';

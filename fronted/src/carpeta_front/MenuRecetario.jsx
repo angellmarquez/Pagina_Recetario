@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './Dashboard';
 import DiscoverFeed from './DiscoverFeed';
 import SidebarNavigation from './components/SidebarNavigation';
-import SearchView from './views/SearchView';
+import SearchView, { getRecipeImage } from './views/SearchView';
 import RecipeDetailView from './views/RecipeDetailView';
 import RegionesView from './views/RegionesView';
 import PlanSemanalView from './views/PlanSemanalView';
@@ -92,6 +92,17 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     } catch (err) {} finally { setGuardando(false); }
   };
 
+  const handleEliminarReceta = async (e, id_receta) => {
+    e.stopPropagation();
+    try {
+      const res = await apiEliminarReceta(usuario.id_usuario, id_receta);
+      if (res.success) {
+        setRecetasGuardadasLocales(prev => prev.filter(r => r.id_receta !== id_receta));
+      }
+    } catch (err) {
+      console.error("Error al eliminar", err);
+    }
+  };
 
 
   return (
@@ -255,12 +266,38 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                 <h2 style={{ fontSize: '32px', marginBottom: '30px', fontWeight: '800' }}>❤️ Tus Recetas Guardadas</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
                    {recetasGuardadasLocales.map(receta => (
-                     <div key={receta.id_receta} className="glass-card" style={{ cursor: 'pointer', padding: '30px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: '#FFD700', fontSize: '32px' }}>🍽️</span>
+                     <div key={receta.id_receta} className="glass-card" style={{ cursor: 'pointer', padding: '0', display: 'flex', flexDirection: 'column', gap: '0', overflow: 'hidden' }}
+                          onClick={() => {
+                            try {
+                              const detail = JSON.parse(receta.descripcion);
+                              setRecetaActiva(detail);
+                              setRespuestaIA(detail.historia);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            } catch (e) {
+                              console.error("Error parsing saved recipe:", e);
+                            }
+                          }}
+                     >
+                        <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                           <img src={getRecipeImage(receta.titulo)} alt={receta.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                           <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(15, 23, 42, 1) 0%, transparent 100%)' }}></div>
+                           <button 
+                             onClick={(e) => handleEliminarReceta(e, receta.id_receta)}
+                             style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(239, 68, 68, 0.8)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', transition: 'transform 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}
+                             title="Eliminar receta"
+                             onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                             onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                           >
+                              🗑️
+                           </button>
                         </div>
-                        <h3 style={{ fontSize: '20px', margin: 0, fontWeight: '800' }}>{receta.titulo}</h3>
-                        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Venia Recetas</p>
+                        <div style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 1, marginTop: '-30px' }}>
+                           <div style={{ display: 'flex', gap: '8px' }}>
+                             <span style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '800' }}>GUARDADA</span>
+                           </div>
+                           <h3 style={{ fontSize: '22px', margin: 0, fontWeight: '800', lineHeight: '1.2', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>{receta.titulo}</h3>
+                           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>Venia Recetas AI</p>
+                        </div>
                      </div>
                    ))}
                 </div>
