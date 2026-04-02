@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-map/venezuela": "^1.0.9",
     "@react-map/world": "^1.0.13",
     "dotenv": "^17.3.1",
     "groq-sdk": "^1.1.1",

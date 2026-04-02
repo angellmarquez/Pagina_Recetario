@@ -1,36 +1,10 @@
 import React, { useState } from 'react';
 import World from "@react-map/world";
-
-// ALL 24 VENEZUELAN ENTITIES (23 States + Capital District)
-const estadosVenezuela = [
-  { nombre: 'Amazonas', plato: 'Gusano de Moriche', gradient: 'linear-gradient(135deg, #14532d, #166534)' },
-  { nombre: 'Anzoátegui', plato: 'Cuajado de Cazón', gradient: 'linear-gradient(135deg, #0284c7, #0ea5e9)' },
-  { nombre: 'Apure', plato: 'Palo a Pique', gradient: 'linear-gradient(135deg, #9a3412, #c2410c)' },
-  { nombre: 'Aragua', plato: 'Sancocho de Pescado', gradient: 'linear-gradient(135deg, #0f766e, #14b8a6)' },
-  { nombre: 'Barinas', plato: 'Picadillo Llanero', gradient: 'linear-gradient(135deg, #b45309, #d97706)' },
-  { nombre: 'Bolívar', plato: 'Pelao Guayanés', gradient: 'linear-gradient(135deg, #115e59, #14b8a6)' },
-  { nombre: 'Carabobo', plato: 'Panelitas de San Joaquín', gradient: 'linear-gradient(135deg, #4338ca, #6366f1)' },
-  { nombre: 'Cojedes', plato: 'Pabellón Criollo Alterado', gradient: 'linear-gradient(135deg, #ea580c, #f97316)' },
-  { nombre: 'Delta Amacuro', plato: 'Sancocho de Morocoto', gradient: 'linear-gradient(135deg, #0e7490, #06b6d4)' },
-  { nombre: 'Distrito Capital', plato: 'Asado Negro', gradient: 'linear-gradient(135deg, #7f1d1d, #ef4444)' },
-  { nombre: 'Falcón', plato: 'Chivo al Coco', gradient: 'linear-gradient(135deg, #c2410c, #f97316)' },
-  { nombre: 'Guárico', plato: 'Pisillo de Chigüire', gradient: 'linear-gradient(135deg, #9a3412, #f59e0b)' },
-  { nombre: 'Lara', plato: 'Mute Larense', gradient: 'linear-gradient(135deg, #854d0e, #eab308)' },
-  { nombre: 'Mérida', plato: 'Pizca Andina', gradient: 'linear-gradient(135deg, #166534, #22c55e)' },
-  { nombre: 'Miranda', plato: 'Cachito de Jamón (Hatillo)', gradient: 'linear-gradient(135deg, #b91c1c, #ef4444)' },
-  { nombre: 'Monagas', plato: 'Casabe y Sancocho', gradient: 'linear-gradient(135deg, #0369a1, #38bdf8)' },
-  { nombre: 'Nueva Esparta', plato: 'Empanadas de Cazón', gradient: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' },
-  { nombre: 'Portuguesa', plato: 'Coporo Frito', gradient: 'linear-gradient(135deg, #d97706, #fbbf24)' },
-  { nombre: 'Sucre', plato: 'Cuajado de Pepitonas', gradient: 'linear-gradient(135deg, #0284c7, #7dd3fc)' },
-  { nombre: 'Táchira', plato: 'Pastelitos Andinos', gradient: 'linear-gradient(135deg, #15803d, #4ade80)' },
-  { nombre: 'Trujillo', plato: 'Mojo Trujillano', gradient: 'linear-gradient(135deg, #166534, #22c55e)' },
-  { nombre: 'La Guaira', plato: 'Pescado Frito con Tostones', gradient: 'linear-gradient(135deg, #0369a1, #0ea5e9)' },
-  { nombre: 'Yaracuy', plato: 'Hallaca de Anguila', gradient: 'linear-gradient(135deg, #ca8a04, #facc15)' },
-  { nombre: 'Zulia', plato: 'Patacón Maracucho', gradient: 'linear-gradient(135deg, #1e3a8a, #3b82f6)' },
-];
+import Venezuela from "@react-map/venezuela";
 
 const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSeleccionado }) => {
   const [loadingTravel, setLoadingTravel] = useState(null);
+  const [activeTab, setActiveTab] = useState('world'); // 'world' or 'venezuela'
 
   const handleCountrySelect = (countryCode) => {
     setLoadingTravel(countryCode);
@@ -43,12 +17,12 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
     }, 1200);
   };
 
-  const handleStateSelect = (estado) => {
-    setLoadingTravel(estado.nombre);
+  const handleStateSelect = (stateName) => {
+    setLoadingTravel(stateName);
 
     // Smooth transition to exploration mode for States
     setTimeout(() => {
-      setPaisSeleccionado({ nombre: estado.nombre, tipo: 'region' });
+      setPaisSeleccionado({ nombre: stateName, tipo: 'region' });
       setSeccionActiva('explorar_pais');
       setPrompt(''); 
     }, 1200);
@@ -57,8 +31,51 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', padding: '0 20px' }}>
       
+      {/* TAB NAVIGATION */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '50px', gap: '20px' }}>
+        <button 
+          onClick={() => setActiveTab('world')}
+          style={{
+            padding: '12px 30px',
+            borderRadius: '100px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            background: activeTab === 'world' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+            color: activeTab === 'world' ? 'var(--primary)' : 'var(--text-secondary)',
+            border: activeTab === 'world' ? '1px solid var(--primary)' : '1px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          🌍 Mundo
+        </button>
+        <button 
+          onClick={() => setActiveTab('venezuela')}
+          style={{
+            padding: '12px 30px',
+            borderRadius: '100px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            background: activeTab === 'venezuela' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+            color: activeTab === 'venezuela' ? '#4ade80' : 'var(--text-secondary)',
+            border: activeTab === 'venezuela' ? '1px solid #4ade80' : '1px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          🇻🇪 Venezuela
+        </button>
+      </div>
+
       {/* SECTION 1: GLOBAL EXPLORATION */}
-      <div className="stagger-1" style={{ textAlign: 'center', marginBottom: '60px' }}>
+      {activeTab === 'world' && (
+      <div className="stagger-1 fade-in" style={{ textAlign: 'center', marginBottom: '60px' }}>
         <div className="hero-badge-premium" style={{ marginBottom: '20px' }}>
           🌍 Explorador Global
         </div>
@@ -118,11 +135,11 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
           )}
         </div>
       </div>
-
-      <hr style={{ border: 'none', height: '1px', background: 'linear-gradient(90deg, transparent, var(--glass-border), transparent)', margin: '80px 0' }} />
+      )}
 
       {/* SECTION 2: VENEZUELA HERITAGE */}
-      <div className="stagger-2">
+      {activeTab === 'venezuela' && (
+      <div className="stagger-1 fade-in">
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <div className="hero-badge-premium" style={{ marginBottom: '20px', background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
             🇻🇪 Patrimonio Nacional
@@ -135,73 +152,55 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
           </p>
         </div>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-          gap: '20px',
-          paddingBottom: '80px'
+        <div className="glass-panel-premium" style={{ 
+          padding: '20px', 
+          background: 'rgba(5, 8, 18, 0.6)', 
+          border: '1px solid rgba(74, 222, 128, 0.4)',
+          borderRadius: '40px',
+          overflow: 'hidden',
+          position: 'relative'
         }}>
-          {estadosVenezuela.map((estado, idx) => (
-            <div 
-              key={idx} 
-              className="glass-card"
-              style={{ 
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                height: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                padding: '20px',
-                border: '1px solid var(--glass-border)',
-                animationDelay: `${(idx % 6) * 0.1}s`
-              }}
-              onClick={() => handleStateSelect(estado)}
-            >
-              {/* Background Gradient */}
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: estado.gradient,
-                opacity: 0.15,
-                zIndex: 0,
-                transition: 'opacity 0.4s'
-              }} className="region-bg" />
-              
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <span style={{ 
-                  background: 'rgba(255,255,255,0.1)', 
-                  backdropFilter: 'blur(10px)',
-                  padding: '4px 10px', 
-                  borderRadius: '12px', 
-                  fontSize: '10px', 
-                  fontWeight: 'bold', 
-                  color: 'white',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase',
-                  display: 'inline-block',
-                  marginBottom: '10px'
-                }}>
-                  🇻🇪 Región
-                </span>
-                <h3 style={{ fontSize: '24px', margin: '0 0 5px 0', fontWeight: '900', color: 'white', letterSpacing: '-0.5px' }}>
-                  {estado.nombre}
-                </h3>
-                <p style={{ fontSize: '14px', margin: 0, color: 'var(--text-secondary)', fontWeight: '500' }}>
-                  Plato icónico: {estado.plato}
-                </p>
+          <div className="map-container-premium">
+            <Venezuela 
+              onSelect={handleStateSelect}
+              size={800}
+              mapColor="#162035"
+              strokeColor="rgba(74, 222, 128, 0.4)"
+              strokeWidth={1}
+              hoverColor="#22c55e"
+              selectColor="#16a34a"
+              hints={true}
+              hintBackgroundColor="var(--surface-bright)"
+              hintTextColor="white"
+              hintPadding="8px 12px"
+              hintBorderRadius="8px"
+              type="select-single"
+            />
+          </div>
+          
+          {loadingTravel && (
+            <div className="glass-card stagger-3" style={{ 
+              position: 'absolute', 
+              bottom: '40px', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              padding: '20px 40px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px',
+              border: '1px solid #4ade80',
+              zIndex: 10
+            }}>
+              <span style={{ fontSize: '24px' }}>🇻🇪</span>
+              <div>
+                <h4 style={{ margin: 0, color: 'white' }}>Viajando a {loadingTravel}...</h4>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Preparando tradiciones locales.</p>
               </div>
-              
-              <style>{`
-                .glass-card:hover .region-bg {
-                  opacity: 0.4 !important;
-                }
-              `}</style>
             </div>
-          ))}
+          )}
         </div>
       </div>
+      )}
 
       <style>{`
         .map-container-premium {
