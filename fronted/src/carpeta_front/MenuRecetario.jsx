@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Dashboard from './Dashboard';
+import NotificationsPanel from './components/NotificationsPanel';
 import DiscoverFeed from './DiscoverFeed';
 import SidebarNavigation from './components/SidebarNavigation';
 import SearchView, { getRecipeImage } from './views/SearchView';
@@ -19,6 +19,39 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [seccionActiva, setSeccionActiva] = useState('descubrir'); 
   const [dashboardAbierto, setDashboardAbierto] = useState(false);
   const [fondoActivo, setFondoActivo] = useState('var(--bg-gradient)');
+  const [notificaciones, setNotificaciones] = useState([]);
+  
+  const addNotification = (titulo, mensaje, tipo = 'info') => {
+    setNotificaciones(prev => [{ titulo, mensaje, tipo, fecha: new Date() }, ...prev]);
+  };
+
+  const sugerirRecomendacion = () => {
+    // Elemento aleatorio para garantizar variedad
+    const momentos = [
+      'algo reconfortante y casero', 'un plato exótico y sorprendente', 'algo ligero y saludable',
+      'un festín digno de celebración', 'un plato rápido pero delicioso', 'algo con mucho sabor y especias',
+      'una receta tradicional venezolana poco conocida', 'algo cremoso y contundente',
+      'un plato con proteína fuerte', 'algo fresco y colorido'
+    ];
+    const random = momentos[Math.floor(Math.random() * momentos.length)];
+
+    // Personalización con datos del usuario
+    const nombre = usuario?.nombre || 'amigo';
+    const dieta = Array.isArray(usuario?.preferencias_dieteticas)
+      ? usuario.preferencias_dieteticas.map(p => p?.nombre || p).filter(Boolean).join(', ')
+      : (usuario?.preferencias_dieteticas || '');
+    const hora = new Date().getHours();
+    const momentoDia = hora < 11 ? 'desayuno' : hora < 16 ? 'almuerzo' : 'cena';
+
+    let promptPersonalizado = `Sorprende a ${nombre} con una receta perfecta para ${momentoDia}. Quiero ${random}.`;
+    if (dieta) promptPersonalizado += ` Respeta estas preferencias dietéticas: ${dieta}.`;
+    promptPersonalizado += ` Hazlo único, diferente a lo de siempre, y que sea un plato venezolano auténtico o latinoamericano.`;
+
+    setSeccionActiva('buscar');
+    setPrompt(promptPersonalizado);
+    generarReceta(promptPersonalizado);
+  };
+
   
   const [guardando, setGuardando] = useState(false);
   const [mensajeGuardado, setMensajeGuardado] = useState('');
@@ -85,6 +118,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
       const { status, data } = await apiGuardarReceta(usuario.id_usuario, prompt, recetaActiva, respuestaIA);
       if (data.success) {
         setMensajeGuardado('¡Guardada mijo! ❤️');
+        addNotification('Receta Guardada', `La receta "${recetaActiva.titulo}" se guardó en tu cuaderno.`, 'success');
       } else {
         setMensajeGuardado(status === 409 ? 'Ya la tenías ❤️' : 'Error al guardar');
       }
@@ -108,13 +142,18 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   return (
     <div className="app-container" style={{ background: fondoActivo, minHeight: '100vh', transition: 'background 1.5s ease' }}>
       
-      {/* Top Navbar / "Cuaderno" button decoupled from the grid */}
+      {/* Top Navbar / "Notificaciones" button decoupled from the grid */}
       <div style={{ position: 'absolute', top: '20px', right: '40px', zIndex: 1000 }}>
         <button 
           className="glass-card" 
           onClick={() => setDashboardAbierto(true)} 
-          style={{ padding: '12px 24px', color: 'white', background: 'rgba(255,255,255,0.05)', cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'center', fontSize: '15px', fontWeight: 'bold' }}>
-          <span>📋</span> Cuaderno
+          style={{ padding: '12px 24px', color: 'white', background: 'rgba(255,255,255,0.05)', cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'center', fontSize: '15px', fontWeight: 'bold', position: 'relative' }}>
+          <span>🔔</span> Notificaciones
+          {notificaciones.length > 0 && (
+            <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#EF3340', color: 'white', border: '2px solid var(--surface-container)', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
+              {notificaciones.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -131,6 +170,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
             setRespuestaIA={setRespuestaIA}
             setFondoActivo={setFondoActivo}
             usuario={usuario}
+            onRecomendar={sugerirRecomendacion}
           />
         </div>
 
@@ -257,7 +297,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
 
             {/* PLAN SEMANAL */}
             {seccionActiva === 'plan' && !recetaActiva && !cargando && (
-              <PlanSemanalView usuario={usuario} />
+              <PlanSemanalView usuario={usuario} addNotification={addNotification} />
             )}
 
             {/* RECETAS GUARDADAS */}
@@ -315,30 +355,10 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
       {/* GLOBAL FOOTER - Full Width and Below Sidebar/Content */}
       <Footer setSeccionActiva={setSeccionActiva} />
 
-      <Dashboard 
+      <NotificationsPanel 
         abierto={dashboardAbierto} 
         onCerrar={() => setDashboardAbierto(false)} 
-        usuario={usuario} 
-        onLogout={onLogout} 
-        apiKey={import.meta.env.VITE_GROQ_API_KEY} 
-        onSeleccionarReceta={(receta) => {
-          try {
-            const detail = JSON.parse(receta.descripcion);
-            setRecetaActiva(detail);
-            setRespuestaIA(detail.historia);
-            setSeccionActiva('buscar'); 
-            setDashboardAbierto(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          } catch (e) {
-            console.error("Error parsing saved recipe:", e);
-          }
-        }}
-        onVerPlanDetallado={(plan) => {
-          // Logic for viewing plan detail if needed, otherwise just close dashboard
-          setSeccionActiva('plan');
-          setDashboardAbierto(false);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        notificaciones={notificaciones}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generarPlanIA } from '../services/aiService';
 import { apiGuardarPlanSemanal, apiGuardarReceta } from '../services/apiService';
 
-const PlanSemanalView = ({ usuario }) => {
+const PlanSemanalView = ({ usuario, addNotification }) => {
   // Configuración Inicial de Fecha y Hora
   const [fechaActual, setFechaActual] = useState(new Date());
   
@@ -133,6 +133,7 @@ const PlanSemanalView = ({ usuario }) => {
       if (!data.success) throw new Error(data.mensaje);
 
       setMensajeExito('¡Receta enviada por WhatsApp exitosamente usando el Bot!');
+      if (addNotification) addNotification('WhatsApp Enviado', 'El menú fue enviado a tu WhatsApp exitosamente usando el Bot.', 'whatsapp');
       setTimeout(() => setMensajeExito(''), 5000);
     } catch (error) {
       setErrorPlan(error.message || 'Hubo un error al intentar enviar el mensaje de WhatsApp.');
@@ -157,6 +158,7 @@ const PlanSemanalView = ({ usuario }) => {
       const res = await apiGuardarReceta(usuario.id_usuario, receta.nombre, recetaGuardar, '');
       if (res.status === 201) {
         setMensajeExito(`¡Receta de ${tipo} guardada exitosamente!`);
+        if (addNotification) addNotification('Receta Guardada', `¡Receta de ${tipo} guardada exitosamente!`, 'success');
         setTimeout(() => setMensajeExito(''), 4000);
       } else {
         throw new Error('Error al guardar');

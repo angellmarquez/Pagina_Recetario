@@ -59,7 +59,7 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: "user", content: promptContextualizado }],
       model: "llama-3.3-70b-versatile",
-      temperature: 0.85,
+      temperature: 1.2,
       response_format: { type: "json_object" },
     });
 

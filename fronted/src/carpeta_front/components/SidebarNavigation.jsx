@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRecetaActiva, setRespuestaIA, setFondoActivo, usuario }) => {
+const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRecetaActiva, setRespuestaIA, setFondoActivo, usuario, onRecomendar }) => {
   const resetState = (nuevaSeccion) => {
     setSeccionActiva(nuevaSeccion);
     setPrompt('');
@@ -76,7 +76,9 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
 
       {/* Sidebar Footer - AI Sous Chef Button */}
       <div style={{ padding: '20px' }}>
-        <button style={{
+        <button 
+          onClick={onRecomendar}
+          style={{
           width: '100%',
           padding: '18px',
           background: 'var(--primary)',
@@ -92,7 +94,7 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
           justifyContent: 'center',
           gap: '10px'
         }}>
-          AI Sous Chef
+          Recomendaciones del chef
         </button>
       </div>
     </aside>
