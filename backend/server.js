@@ -58,4 +58,8 @@ app.get('/api/recetas/imagen', async (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor Backend Ordenado corriendo en http://localhost:${PORT}`);
+    
+    // Inicializar el Bot de WhatsApp automáticamente
+    const { inicializarBot } = require('./bot_whatsapp');
+    inicializarBot();
 });

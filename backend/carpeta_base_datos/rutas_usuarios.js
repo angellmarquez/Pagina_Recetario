@@ -55,7 +55,22 @@ router.delete('/plan-semanal/:id_plan', (req, res) => {
         res.json({ success: true, mensaje: 'Plan eliminado correctamente' });
     });
 });
+// Ruta para enviar mensaje por WhatsApp (usando el Bot Local)
+router.post('/whatsapp/enviar', async (req, res) => {
+    const { telefonoDestino, mensaje } = req.body;
+    if (!telefonoDestino || !mensaje) {
+        return res.status(400).json({ success: false, mensaje: 'Teléfono y mensaje requeridos' });
+    }
 
+    try {
+        const { enviarMensajeWasap } = require('../bot_whatsapp');
+        await enviarMensajeWasap(telefonoDestino, mensaje);
+        res.json({ success: true, mensaje: 'Mensaje enviado exitosamente vía WhatsApp' });
+    } catch (error) {
+        console.error("Error al enviar wasap:", error);
+        res.status(500).json({ success: false, mensaje: error.message || 'Error al enviar el WhatsApp' });
+    }
+});
 
 // Ruta para el Login
 router.post('/login', (req, res) => {

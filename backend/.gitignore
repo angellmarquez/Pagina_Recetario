@@ -1,0 +1,9 @@
+# Ignorar archivos y carpetas generados automáticamente para backend
+node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
+*.log
+*.bin
+*.db
+*.pma
+.env

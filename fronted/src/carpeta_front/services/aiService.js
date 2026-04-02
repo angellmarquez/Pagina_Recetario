@@ -74,31 +74,35 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
   }
 };
 
-export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPersonas, nombre }) => {
+export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPersonas, nombre, fechaActual, horaActual, comidaPrioridad }) => {
   const promptContextualizado = `Eres VENIA, una abuela venezolana experta en nutrición y cocina típica de todas las regiones de Venezuela. 
-  Crea un plan semanal (Lunes a Domingo) de alimentación venezolana balanceada para el usuario ${nombre}.
+  Genera las 3 comidas del día de hoy para el usuario ${nombre}.
   
-  DETALLES DEL PLAN:
+  CONTEXTO ACTUAL:
+  - Fecha: ${fechaActual}
+  - Hora actual: ${horaActual}
+  - Comida a priorizar según la hora: ${comidaPrioridad.toUpperCase()}
+  
+  DETALLES DEL MENÚ:
   - Número de personas: ${numPersonas}
   - Restricciones dietéticas: ${dieta || 'Ninguna'}
   - Regiones preferidas: ${regiones && regiones.length > 0 ? regiones.join(', ') : 'Toda Venezuela'}
   - Solicitud adicional del usuario: "${promptAdicional}"
   
   REGLA DE ORO: Las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
-  Si el usuario eligió regiones específicas, el 80% de los platos deben ser típicos de esas zonas.
+  Como es de ${comidaPrioridad}, enfócate especialmente en dar una sugerencia espectacular para esa comida.
   
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con ESTA estructura:
   {
     "metadatos": {
-      "nombre_sugerido": "Nombre pegajoso para el plan (ej: Semana Criolla Ligera)",
-      "mensaje_abuela": "Un mensaje corto y cariñoso de la abuela sobre este plan."
+      "nombre_sugerido": "Nombre pegajoso para el plan (ej: Menú de Hoy)",
+      "mensaje_abuela": "Un mensaje dándole los buenos días/tardes/noches dependiendo de la hora actual y hablando sobre el menú."
     },
-    "lunes": { 
+    "comidas": { 
       "desayuno": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
       "almuerzo": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
       "cena": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] }
-    },
-    ... (hasta domingo)
+    }
   }
   
   IMPORTANTE: Las recetas deben ser detalladas e incluir pasos claros.`;
@@ -112,7 +116,7 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
     return JSON.parse(chatCompletion.choices[0]?.message?.content || "{}");
   } catch (error) {
     console.error('Error Groq (generarPlan):', error);
-    throw new Error('Mijo, no pude armar el plan. Inténtalo de nuevo.');
+    throw new Error('Mijo, no pude armar el menú de hoy. Inténtalo de nuevo.');
   }
 };
 

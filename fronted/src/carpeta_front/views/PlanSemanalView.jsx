@@ -1,23 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generarPlanIA } from '../services/aiService';
 import { apiGuardarPlanSemanal } from '../services/apiService';
 
 const PlanSemanalView = ({ usuario }) => {
+  // Configuración Inicial de Fecha y Hora
+  const [fechaActual, setFechaActual] = useState(new Date());
+  
+  useEffect(() => {
+    const timer = setInterval(() => setFechaActual(new Date()), 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatearHora = (date) => date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const formatearFecha = (date) => date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  
+  // Determinar la comida a priorizar según la hora
+  const getComidaPrioridad = () => {
+    const hora = fechaActual.getHours();
+    if (hora < 11) return 'desayuno';
+    if (hora < 16) return 'almuerzo';
+    return 'cena';
+  };
+
+  const prioridad = getComidaPrioridad();
+
   // Filter states
   const [numPersonas, setNumPersonas] = useState(4);
-  const [dieta, setDieta] = useState('Sin Gluten');
+  const [dieta, setDieta] = useState('Ninguna');
   const [regiones, setRegiones] = useState(['llanos', 'oriente']);
   const [promptAdicional, setPromptAdicional] = useState('');
-  const [nombrePlan, setNombrePlan] = useState('');
   
   // Control states
   const [cargando, setCargando] = useState(false);
   const [planIA, setPlanIA] = useState(null);
   const [errorPlan, setErrorPlan] = useState('');
   const [mensajeExito, setMensajeExito] = useState('');
+  
+  // Estado para la API de WhatsApp
+  const [wasapEnviando, setWasapEnviando] = useState(false);
 
-  const diasOrden = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
-  const opcionesDieta = ['Sin Gluten', 'Vegano', 'Keto', 'Lactose Free'];
+  // Parsear dieta del usuario cuando esté disponible
+  useEffect(() => {
+    if (usuario && usuario.preferencias_dieteticas) {
+      const prefs = usuario.preferencias_dieteticas;
+      if (Array.isArray(prefs) && prefs.length > 0) {
+        setDieta(prefs[0].nombre || prefs[0]);
+      }
+    }
+  }, [usuario]);
+
+  const opcionesDieta = ['Sin Gluten', 'Vegano', 'Keto', 'Lactose Free', 'Ninguna'];
   const opcionesRegiones = [
     { id: 'llanos', nombre: 'Los Llanos (Savannah)' },
     { id: 'oriente', nombre: 'Oriente (Coastal)' },
@@ -25,11 +57,8 @@ const PlanSemanalView = ({ usuario }) => {
   ];
 
   const toggleRegion = (regId) => {
-    if (regiones.includes(regId)) {
-      setRegiones(regiones.filter(r => r !== regId));
-    } else {
-      setRegiones([...regiones, regId]);
-    }
+    if (regiones.includes(regId)) setRegiones(regiones.filter(r => r !== regId));
+    else setRegiones([...regiones, regId]);
   };
 
   const generarPlan = async () => {
@@ -42,66 +71,98 @@ const PlanSemanalView = ({ usuario }) => {
         dieta,
         regiones,
         numPersonas,
-        nombre: usuario?.nombre || 'Gourmet'
+        nombre: usuario?.nombre || 'Gourmet',
+        fechaActual: formatearFecha(fechaActual),
+        horaActual: formatearHora(fechaActual),
+        comidaPrioridad: prioridad
       });
       
-      if (planGenerado && (planGenerado.lunes || planGenerado.Lunes)) {
+      if (planGenerado && planGenerado.comidas) {
         setPlanIA(planGenerado);
-        setNombrePlan(planGenerado.metadatos?.nombre_sugerido || '');
       } else {
         setErrorPlan('Mijo, la abuela se enredó con los cables. Inténtalo de nuevo.');
       }
     } catch (error) {
-      setErrorPlan(error.message || 'No pude armar el plan, corazón.');
+      setErrorPlan(error.message || 'No pude armar el menú, corazón.');
     } finally {
       setCargando(false);
     }
   };
 
-  const guardarPlan = async () => {
-    if (!nombrePlan) {
-      setErrorPlan('¡Ponle un nombre a tu plan, mijo!');
+  const enviarWhatsApp = async () => {
+    if (!planIA || !planIA.comidas) return;
+    if (!usuario || !usuario.telefono) {
+      setErrorPlan('No tienes un número de teléfono registrado en tu perfil.');
       return;
     }
-    setCargando(true);
+
+    setWasapEnviando(true);
+    
+    // Preparar el texto a enviar basado en la sugerencia prioritaria sin formato URL
+    const recetaPrioridad = planIA.comidas[prioridad];
+    const textoMensaje = `*¡Hola! VENIA te ha preparado este menú para hoy (${formatearFecha(fechaActual)})* 👩🏽‍🍳✨\n\n` +
+      `*🍲 Pluma Principal (${prioridad.toUpperCase()}):* ${recetaPrioridad?.nombre}\n` +
+      `*Ingredientes:* ${recetaPrioridad?.ingredientes?.join(', ')}\n\n` +
+      `*¡Buen provecho!*`;
+
     try {
-      const res = await apiGuardarPlanSemanal(usuario?.id_usuario, planIA, nombrePlan);
-      if (res.error) throw new Error(res.error);
-      setMensajeExito('¡Plan guardado con éxito!');
+      const res = await fetch('http://localhost:3000/api/whatsapp/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telefonoDestino: usuario.telefono,
+          mensaje: textoMensaje
+        })
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.mensaje);
+
+      setMensajeExito('¡Receta enviada por WhatsApp exitosamente usando el Bot!');
       setTimeout(() => setMensajeExito(''), 5000);
     } catch (error) {
-      setErrorPlan('No se pudo guardar el plan.');
+      setErrorPlan(error.message || 'Hubo un error al intentar enviar el mensaje de WhatsApp.');
     } finally {
-      setCargando(false);
+      setWasapEnviando(false);
     }
-  };
-
-  const formatearDia = (dia) => {
-    const nombres = {
-      'lunes': 'MON', 'martes': 'TUE', 'miercoles': 'WED', 
-      'jueves': 'THU', 'viernes': 'FRI', 'sabado': 'SAT', 'domingo': 'SUN'
-    };
-    return nombres[dia.toLowerCase()] || dia.toUpperCase();
   };
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', width: '100%', padding: '20px 40px' }}>
       
+      {/* Mensajes Flotantes */}
+      {mensajeExito && (
+        <div style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid #22c55e', color: '#22c55e', padding: '15px 25px', borderRadius: '12px', marginBottom: '20px', fontWeight: 'bold' }}>
+          {mensajeExito}
+        </div>
+      )}
+      {errorPlan && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#ef4444', padding: '15px 25px', borderRadius: '12px', marginBottom: '20px', fontWeight: 'bold' }}>
+          {errorPlan}
+        </div>
+      )}
+
       {/* Header + CTA Row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div className="stagger-1" style={{ flex: 1 }}>
           <h1 style={{ fontSize: '64px', fontWeight: '800', margin: '0', letterSpacing: '-2px', color: 'white' }}>
-            Weekly <span style={{ color: 'var(--primary)' }}>Plan</span>
+            Daily <span style={{ color: 'var(--primary)' }}>Menu</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '18px', marginTop: '15px', maxWidth: '600px', lineHeight: '1.4' }}>
-            Transform your ingredients into a curated Venezuelan culinary journey. Powered by heritage, refined by AI.
+            Perfect recommendations for {formatearFecha(fechaActual)} at {formatearHora(fechaActual)}. Powered by heritage.
           </p>
         </div>
         
         <div className="stagger-1" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-           <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--outline)', color: 'white', borderRadius: '100px', padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600' }}>
-             📔 Cuaderno
-           </button>
+           {planIA && (
+            <button 
+              onClick={enviarWhatsApp}
+              disabled={wasapEnviando}
+              style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: '100px', padding: '18px 30px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: wasapEnviando ? 0.7 : 1 }}
+            >
+              📱 {wasapEnviando ? 'Enviando...' : 'Enviar Receta a WhatsApp'}
+            </button>
+           )}
            <button 
             onClick={generarPlan} 
             disabled={cargando}
@@ -122,7 +183,7 @@ const PlanSemanalView = ({ usuario }) => {
             }}
           >
             <span style={{ fontSize: '24px' }}>✨</span>
-            {cargando ? 'Generando...' : 'Generar Plan con IA'}
+            {cargando ? 'Generando...' : 'Generar Menú del Día'}
           </button>
         </div>
       </div>
@@ -135,43 +196,36 @@ const PlanSemanalView = ({ usuario }) => {
           <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Portions</p>
           <h3 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 30px', color: 'white' }}>Number of people</h3>
           <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(5, 8, 18, 0.6)', borderRadius: '24px', padding: '12px', width: 'fit-content' }}>
-            <button 
-              onClick={() => setNumPersonas(Math.max(1, numPersonas - 1))}
-              style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '28px', cursor: 'pointer', padding: '0 25px' }}
-            >−</button>
+            <button onClick={() => setNumPersonas(Math.max(1, numPersonas - 1))} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '28px', cursor: 'pointer', padding: '0 25px' }}>−</button>
             <span style={{ fontSize: '36px', fontWeight: '800', width: '70px', textAlign: 'center', color: 'white' }}>{numPersonas.toString().padStart(2, '0')}</span>
-            <button 
-              onClick={() => setNumPersonas(numPersonas + 1)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '28px', cursor: 'pointer', padding: '0 25px' }}
-            >+</button>
+            <button onClick={() => setNumPersonas(numPersonas + 1)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: '28px', cursor: 'pointer', padding: '0 25px' }}>+</button>
           </div>
         </div>
 
         {/* Card 2: Preferences */}
         <div className="glass-card" style={{ padding: '40px', background: 'rgba(15, 23, 42, 0.4)' }}>
-          <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Preferences</p>
-          <h3 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 30px', color: 'white' }}>Dietary restrictions</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Preferences (From Profile)</p>
+          <h3 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 20px', color: 'white' }}>Dietary restrictions</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {opcionesDieta.map(opt => (
               <button
                 key={opt}
-                onClick={() => setDieta(dieta === opt ? '' : opt)}
+                onClick={() => setDieta(dieta === opt ? 'Ninguna' : opt)}
                 style={{
-                  padding: '12px 24px',
+                  padding: '10px 18px',
                   borderRadius: '100px',
                   border: '1px solid',
                   borderColor: dieta === opt ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
                   background: dieta === opt ? 'rgba(245,158,11,0.1)' : 'rgba(5, 8, 18, 0.4)',
                   color: dieta === opt ? 'var(--primary)' : 'rgba(255,255,255,0.4)',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: '700'
                 }}
               >
                 {opt}
               </button>
             ))}
-            <button style={{ color: 'rgba(255,255,255,0.3)', border: 'none', background: 'transparent', fontSize: '14px', fontWeight: '600', cursor: 'pointer', marginLeft: '10px' }}>+ Add Custom</button>
           </div>
         </div>
 
@@ -179,116 +233,70 @@ const PlanSemanalView = ({ usuario }) => {
         <div className="glass-card" style={{ padding: '40px', background: 'rgba(15, 23, 42, 0.4)', position: 'relative', overflow: 'hidden' }}>
           <p style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '12px' }}>Gastronomy</p>
           <h3 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 30px', color: 'white' }}>Preferred regions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {opcionesRegiones.map(reg => (
-              <label key={reg.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }}>
-                <div style={{
-                  width: '24px', height: '24px',
-                  borderRadius: '6px',
-                  border: '2px solid',
-                  borderColor: regiones.includes(reg.id) ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                  background: regiones.includes(reg.id) ? 'var(--primary)' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.2s'
-                }}>
-                  {regiones.includes(reg.id) && <span style={{ color: 'var(--on-primary)', fontWeight: '900', fontSize: '14px' }}>✓</span>}
+              <label key={reg.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: '2px solid', borderColor: regiones.includes(reg.id) ? 'var(--primary)' : 'rgba(255,255,255,0.1)', background: regiones.includes(reg.id) ? 'var(--primary)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                  {regiones.includes(reg.id) && <span style={{ color: 'var(--on-primary)', fontWeight: '900', fontSize: '12px' }}>✓</span>}
                 </div>
-                <input 
-                  type="checkbox" 
-                  checked={regiones.includes(reg.id)}
-                  onChange={() => toggleRegion(reg.id)}
-                  style={{ display: 'none' }}
-                />
-                <span style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>{reg.nombre}</span>
+                <input type="checkbox" checked={regiones.includes(reg.id)} onChange={() => toggleRegion(reg.id)} style={{ display: 'none' }} />
+                <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>{reg.nombre}</span>
               </label>
             ))}
           </div>
-          <div style={{ position: 'absolute', bottom: '-40px', right: '-20px', opacity: 0.1, fontSize: '200px', pointerEvents: 'none' }}>🇻🇪</div>
         </div>
       </div>
 
-      {/* Section: The Calendar */}
+      {/* Section: Daily Menu */}
       <div className="stagger-3" style={{ marginBottom: '80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '48px', fontWeight: '800', margin: 0, color: 'white' }}>The Calendar</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '30px', color: 'white' }}>
-             <button style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', opacity: 0.5 }}>←</button>
-             <span style={{ fontSize: '18px', fontWeight: '700' }}>Mayo 15 - 21</span>
-             <button style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', opacity: 0.5 }}>→</button>
-          </div>
+          <h2 style={{ fontSize: '48px', fontWeight: '800', margin: 0, color: 'white' }}>Menu del Día</h2>
+          {planIA && planIA.metadatos && (
+            <p style={{ color: 'var(--primary)', fontStyle: 'italic', margin: 0 }}>"{planIA.metadatos.mensaje_abuela}"</p>
+          )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '15px' }}>
-          {diasOrden.map((dia, idx) => {
-            const isActive = dia === 'miercoles'; 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          {['desayuno', 'almuerzo', 'cena'].map((tipo) => {
+            const isPriority = prioridad === tipo;
+            const receta = planIA?.comidas?.[tipo];
+
             return (
-              <div key={dia} className="glass-card" style={{ 
-                padding: '24px', 
-                background: isActive ? 'rgba(15, 23, 42, 0.4)' : 'rgba(15, 23, 42, 0.2)',
-                border: isActive ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
-                position: 'relative'
+              <div key={tipo} className="glass-card" style={{ 
+                padding: '30px', 
+                background: isPriority ? 'rgba(245, 158, 11, 0.05)' : 'rgba(15, 23, 42, 0.4)',
+                border: isPriority ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column'
               }}>
-                 {isActive && <div style={{ position: 'absolute', top: '-10px', right: '10px', background: 'var(--primary)', color: 'var(--on-primary)', padding: '4px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: '900' }}>AI PICK</div>}
+                 {isPriority && <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'var(--primary)', color: 'var(--on-primary)', padding: '6px 16px', borderRadius: '100px', fontSize: '12px', fontWeight: '900', boxShadow: '0 4px 15px rgba(245,158,11,0.3)' }}>🍽️ SUGERENCIA ACTUAL</div>}
                  
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '30px' }}>
-                   <span style={{ fontSize: '14px', fontWeight: '800', color: 'white' }}>{formatearDia(dia)}</span>
-                   <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.3)' }}>{15 + idx}</span>
+                 <div style={{ marginBottom: '20px' }}>
+                   <span style={{ textTransform: 'uppercase', fontSize: '14px', fontWeight: '800', color: isPriority ? 'var(--primary)' : 'rgba(255,255,255,0.5)', letterSpacing: '2px' }}>{tipo}</span>
+                   {receta ? (
+                     <h3 style={{ fontSize: '28px', color: 'white', fontWeight: '700', marginTop: '10px' }}>{receta.nombre}</h3>
+                   ) : (
+                     <h3 style={{ fontSize: '24px', color: 'rgba(255,255,255,0.2)', fontWeight: '700', marginTop: '10px' }}>Esperando IA...</h3>
+                   )}
                  </div>
                  
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {[1,2,3].map(i => (
-                      <div key={i}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }}></div>
-                        </div>
-                        {isActive && i === 1 ? (
-                          <>
-                            <p style={{ fontSize: '13px', fontWeight: '700', color: 'white', margin: '0 0 4px' }}>Pabellón Criollo</p>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                               <div style={{ width: '12px', height: '4px', borderRadius: '2px', background: 'var(--primary)' }}></div>
-                               <div style={{ width: '12px', height: '4px', borderRadius: '2px', background: '#ff716c' }}></div>
-                            </div>
-                          </>
-                        ) : (
-                          <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', width: '80%' }}></div>
-                        )}
-                      </div>
-                    ))}
-                 </div>
+                 {receta && (
+                   <div style={{ flex: 1 }}>
+                     <div style={{ marginBottom: '20px' }}>
+                       <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 10px' }}>Ingredientes Clave</p>
+                       <ul style={{ paddingLeft: '20px', margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.6' }}>
+                         {receta.ingredientes?.slice(0,4).map((ing, i) => <li key={i}>{ing}</li>)}
+                         {receta.ingredientes?.length > 4 && <li>Y más...</li>}
+                       </ul>
+                     </div>
+                   </div>
+                 )}
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Section: Regional Spotlight */}
-      <div className="stagger-4">
-        <div style={{ marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: '800', margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            Regional Spotlight
-            <span style={{ fontSize: '14px', fontWeight: '500', color: 'rgba(255,255,255,0.4)' }}>Suggested based on your preference</span>
-          </h2>
-        </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px' }}>
-          {[
-            { tag: 'LOS LLANOS', title: 'Carne en Vara', desc: 'Smoked slow-roasted beef from the...' },
-            { tag: 'ORIENTE', title: 'Cachapa con Queso', desc: 'Sweet corn pancakes with handmade...' },
-            { tag: 'AI TWIST', title: 'Cacao Symphony', desc: 'Venezuelan chocolate mousse with...' }
-          ].map((item, idx) => (
-            <div key={idx} className="glass-card" style={{ height: '300px', overflow: 'hidden', padding: 0 }}>
-               <div style={{ height: '100%', background: 'linear-gradient(to bottom, transparent 30%, rgba(5,8,18,0.9) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '30px' }}>
-                  <span style={{ background: 'var(--primary-container)', color: 'var(--primary)', padding: '4px 12px', borderRadius: '40px', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', width: 'fit-content', marginBottom: '12px' }}>
-                    {item.tag}
-                  </span>
-                  <h4 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: '0 0 8px' }}>{item.title}</h4>
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>{item.desc}</p>
-               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
     </div>
   );
 };
