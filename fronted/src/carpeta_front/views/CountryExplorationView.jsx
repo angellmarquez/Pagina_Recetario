@@ -41,7 +41,8 @@ const getRegionImage = (lugar, tipo) => {
   return images[lugar] || 'https://images.unsplash.com/photo-1488459711626-d6df200c9977?q=80&w=1600&auto=format&fit=crop';
 };
 
-const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarReceta, cargando, onVolver }) => {
+const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarReceta, cargando, onVolver, lockIAUntil }) => {
+  const isLocked = lockIAUntil && Date.now() < lockIAUntil;
   const isVenezuelaState = tipoLugar === 'region';
   const suggestions = useMemo(() => {
     if (isVenezuelaState) return stateSuggestions[pais] || ['Plato Principal', 'Postre Tradicional', 'Desayuno'];
@@ -177,16 +178,18 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
             <button 
               className="btn-gold"
               onClick={() => handleSearch()} 
-              disabled={cargando} 
+              disabled={cargando || isLocked} 
               style={{ 
                 padding: '14px 40px',
                 borderRadius: '100px',
                 fontSize: '15px',
                 fontWeight: '800',
-                background: isVenezuelaState ? '#22c55e' : undefined,
-                boxShadow: isVenezuelaState ? '0 10px 30px rgba(34, 197, 94, 0.3)' : undefined
+                background: isLocked ? 'rgba(255,255,255,0.1)' : (isVenezuelaState ? '#22c55e' : undefined),
+                boxShadow: isLocked ? 'none' : (isVenezuelaState ? '0 10px 30px rgba(34, 197, 94, 0.3)' : undefined),
+                opacity: isLocked ? 0.6 : 1,
+                color: isLocked ? 'rgba(255,255,255,0.4)' : 'white'
               }}>
-              {cargando ? '⌛...' : 'COCINAR'}
+              {cargando ? '⌛...' : (isLocked ? '🔒 ESPERA' : 'COCINAR')}
             </button>
           </div>
         </div>

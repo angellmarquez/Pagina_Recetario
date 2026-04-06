@@ -142,10 +142,10 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             lineHeight: '0.85', 
             color: 'white' 
           }}>
-            Settings <span style={{ color: 'var(--primary)' }}>&</span><br/>Profile
+            Settings <span style={{ color: 'var(--primary)' }}>&</span><br/>Perfil
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '19px', margin: 0, maxWidth: '550px', lineHeight: '1.5', fontWeight: '500' }}>
-            Tailor your culinary journey through the heart of Venezuela. Update your preferences and let our AI personalize your experience.
+            Personaliza tu viaje culinario por el corazón de Venezuela. Actualiza tus preferencias y deja que nuestra IA personalice tu experiencia.
           </p>
         </div>
         
@@ -159,7 +159,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                 borderRadius: '40px', border: '1px solid var(--outline)', fontWeight: '700', cursor: 'pointer',
                 fontSize: '15px', opacity: hasChanges ? 1 : 0.5
               }}>
-              Discard
+              Descartar
             </button>
             <button 
               onClick={handleSave}
@@ -171,7 +171,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                 fontSize: '15px',
                 opacity: hasChanges || modalStatus === 'success' ? 1 : 0.7
               }}>
-              {modalStatus === 'success' ? 'Saved!' : 'Save Changes'}
+              {modalStatus === 'success' ? '¡Guardado!' : 'Guardar Cambios'}
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
           <div className="glass-card" style={{ padding: '45px', flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '35px' }}>
               <div>
-                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>FULL NAME</label>
+                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>NOMBRE COMPLETO</label>
                 <input 
                   type="text" value={nombre} onChange={(e) => setNombre(e.target.value)}
                   maxLength={30}
@@ -242,7 +242,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
               </div>
             </div>
             <div style={{ marginBottom: '35px' }}>
-              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>EMAIL ADDRESS</label>
+              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>CORREO ELECTRÓNICO</label>
               <input 
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 maxLength={50}
@@ -252,7 +252,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
 
             </div>
             <div>
-              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>BIO & CULINARY INTEREST</label>
+              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>BIO E INTERÉS CULINARIO</label>
               <textarea 
                 value={bio} onChange={(e) => setBio(e.target.value)}
                 maxLength={50}
@@ -268,7 +268,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
           
           <div className="glass-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', height: '100%', flex: 1 }}>
             <h4 style={{ fontSize: '19px', display: 'flex', alignItems: 'center', gap: '12px', margin: '0 0 30px', fontWeight: '800' }}>
-              <span style={{ color: 'var(--primary)' }}>🍳</span> Dietary Style
+              <span style={{ color: 'var(--primary)' }}>🍳</span> Estilo Dietético
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: 'auto' }}>
               {dietaryStyle.map(tag => (
@@ -318,14 +318,14 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                       padding: '10px 18px', borderRadius: '15px', border: 'none', 
                       fontWeight: '800', fontSize: '12px', cursor: 'pointer' 
                     }}
-                  >Add</button>
+                  >Añadir</button>
                   <button onClick={() => setIsAdding(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>✕</button>
                 </div>
               ) : (
                 <button 
                   onClick={() => setIsAdding(true)}
                   style={{ padding: '10px 20px', borderRadius: '30px', border: '1px dashed var(--outline)', color: 'var(--text-muted)', background: 'transparent', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}>
-                  + Add Tag
+                  + Añadir Etiqueta
                 </button>
               )}
             </div>
@@ -333,7 +333,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '25px', borderRadius: '25px', position: 'relative', marginTop: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
               <div style={{ position: 'absolute', top: '12px', right: '12px', color: 'var(--text-muted)', fontSize: '16px', opacity: 0.5 }}>ⓘ</div>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', fontWeight: '500' }}>
-                Your flavor profile helps our AI prioritize <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>regional specialties</span> from Zulia and the Andes based on your current location.
+                Tu perfil de sabor ayuda a nuestra IA a priorizar <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>especialidades regionales</span> del Zulia y los Andes según tu gusto.
               </p>
             </div>
           </div>
@@ -342,13 +342,13 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
 
       <div className="glass-card" style={{ marginTop: '40px', padding: '35px 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--outline-variant)' }}>
         <div>
-          <h4 style={{ fontSize: '18px', margin: '0 0 8px', fontWeight: '900' }}>Account Privacy</h4>
-          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>Managing your data and visibility settings.</p>
+          <h4 style={{ fontSize: '18px', margin: '0 0 8px', fontWeight: '900' }}>Privacidad de la Cuenta</h4>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>Administra tus datos y la visibilidad de tu perfil.</p>
         </div>
         <button style={{ 
           background: 'transparent', border: 'none', color: '#ff716c', fontWeight: '900', cursor: 'pointer', fontSize: '17px', letterSpacing: '0.5px'
         }}>
-          Delete Account
+          Eliminar Cuenta
         </button>
       </div>
 

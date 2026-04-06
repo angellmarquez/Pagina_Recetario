@@ -68,6 +68,18 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
     return JSON.parse(dataString);
   } catch (error) {
     console.error('Error Groq (generarReceta):', error);
+    
+    // Manejo de Límites de Tokens (429)
+    if (error.status === 429 || error.name === 'RateLimitError') {
+      const resetTime = error.headers?.get('x-ratelimit-reset-tokens') || error.headers?.get('retry-after') || '60s';
+      const seconds = parseResetTime(resetTime);
+      throw { 
+        type: 'RATE_LIMIT', 
+        mensaje: '¡Mijo, dame un respiro! La abuela está pensando demasiado rápido.',
+        segundos: seconds 
+      };
+    }
+
     throw new Error('Mijo, hubo un problema conectando con el cerebro de la abuela.');
   }
 };
@@ -120,7 +132,33 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
     return JSON.parse(chatCompletion.choices[0]?.message?.content || "{}");
   } catch (error) {
     console.error('Error Groq (generarPlan):', error);
+    if (error.status === 429 || error.name === 'RateLimitError') {
+      const resetTime = error.headers?.get('x-ratelimit-reset-tokens') || error.headers?.get('retry-after') || '60s';
+      const seconds = parseResetTime(resetTime);
+      throw { 
+        type: 'RATE_LIMIT', 
+        mensaje: '¡Mijo, espérame un poco que tengo muchas facturas por cobrar!',
+        segundos: seconds 
+      };
+    }
     throw new Error('Mijo, no pude armar el menú de hoy. Inténtalo de nuevo.');
   }
 };
+
+// Helper para parsear tiempos como "12s", "1m3s", "60"
+function parseResetTime(timeStr) {
+  if (!timeStr) return 60;
+  if (typeof timeStr === 'number') return timeStr;
+  
+  let totalSeconds = 0;
+  const minutesMatch = timeStr.match(/(\d+)m/);
+  const secondsMatch = timeStr.match(/(\d+)s/);
+  const rawSecondsMatch = timeStr.match(/^(\d+)$/);
+
+  if (minutesMatch) totalSeconds += parseInt(minutesMatch[1]) * 60;
+  if (secondsMatch) totalSeconds += parseInt(secondsMatch[1]);
+  if (rawSecondsMatch) totalSeconds = parseInt(rawSecondsMatch[1]);
+
+  return totalSeconds > 0 ? totalSeconds : 60;
+}
 

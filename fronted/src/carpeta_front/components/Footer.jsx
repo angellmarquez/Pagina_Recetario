@@ -59,7 +59,7 @@ const Footer = ({ setSeccionActiva }) => {
               <span style={{ fontSize: '28px', fontWeight: '900', color: 'white' }}>IA</span>
             </div>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 25px', fontWeight: '500' }}>
-              The Modern Hearth
+              El Hogar Moderno
             </p>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
               <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -77,25 +77,25 @@ const Footer = ({ setSeccionActiva }) => {
           {/* Columna 2: Explorar */}
           <div>
             <h4 style={columnTitleStyle}>Explorar</h4>
-            <div onClick={() => handleLinkClick('descubrir')} style={footerLinkStyle} className="hover-primary">Discover</div>
-            <div onClick={() => handleLinkClick('regiones')} style={footerLinkStyle} className="hover-primary">Regions</div>
-            <div style={footerLinkStyle} className="hover-primary">Ingredients</div>
+            <div onClick={() => handleLinkClick('descubrir')} style={footerLinkStyle} className="hover-primary">Descubrir</div>
+            <div onClick={() => handleLinkClick('regiones')} style={footerLinkStyle} className="hover-primary">Regiones</div>
+            <div style={footerLinkStyle} className="hover-primary">Ingredientes</div>
           </div>
 
           {/* Columna 3: Recetas */}
           <div>
             <h4 style={columnTitleStyle}>Recetas</h4>
-            <div onClick={() => handleLinkClick('guardadas')} style={footerLinkStyle} className="hover-primary">My Recipes</div>
-            <div style={footerLinkStyle} className="hover-primary">Top Rated</div>
-            <div style={footerLinkStyle} className="hover-primary">Quick Meals</div>
+            <div onClick={() => handleLinkClick('guardadas')} style={footerLinkStyle} className="hover-primary">Mis Recetas</div>
+            <div style={footerLinkStyle} className="hover-primary">Mejor Valoradas</div>
+            <div style={footerLinkStyle} className="hover-primary">Comidas Rápidas</div>
           </div>
 
           {/* Columna 4: Planificador */}
           <div>
             <h4 style={columnTitleStyle}>Planificador</h4>
-            <div onClick={() => handleLinkClick('plan')} style={footerLinkStyle} className="hover-primary">Meal Plans</div>
-            <div style={footerLinkStyle} className="hover-primary">Shopping List</div>
-            <div style={footerLinkStyle} className="hover-primary">AI Suggestions</div>
+            <div onClick={() => handleLinkClick('plan')} style={footerLinkStyle} className="hover-primary">Planes de Comidas</div>
+            <div style={footerLinkStyle} className="hover-primary">Lista de Compras</div>
+            <div style={footerLinkStyle} className="hover-primary">Sugerencias de IA</div>
           </div>
 
         </div>
@@ -109,11 +109,11 @@ const Footer = ({ setSeccionActiva }) => {
           alignItems: 'center' 
         }}>
           <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>
-            © {currentYear} Ven IA. All rights reserved.
+            © {currentYear} Ven IA. Todos los derechos reservados.
           </p>
           <div style={{ display: 'flex', gap: '30px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px' }}>PRIVACY POLICY</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px' }}>TERMS OF SERVICE</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px' }}>POLÍTICA DE PRIVACIDAD</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px' }}>TÉRMINOS DE SERVICIO</span>
           </div>
         </div>
       </div>

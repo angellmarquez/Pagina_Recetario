@@ -13,7 +13,8 @@ export const getRecipeImage = (titulo) => {
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop';
 };
 
-const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva, recentRecipes = [], onSelectRecipe, onClearHistory }) => {
+const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva, recentRecipes = [], onSelectRecipe, onClearHistory, lockIAUntil }) => {
+  const isLocked = lockIAUntil && Date.now() < lockIAUntil;
   const isNevera = seccionActiva === 'nevera';
 
   const handleSearch = (term = null) => {
@@ -80,7 +81,7 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
         
         {/* Animated Badge */}
         <div className="hero-badge-premium">
-          <span style={{ fontSize: '14px' }}>✨</span> {isNevera ? 'Tradition & Innovation' : 'Venezuelan Heritage'}
+          <span style={{ fontSize: '14px' }}>✨</span> {isNevera ? 'Tradición e Innovación' : 'Herencia Venezolana'}
         </div>
 
         <div>
@@ -133,7 +134,7 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
           <button 
             className="btn-gold"
             onClick={() => handleSearch()} 
-            disabled={cargando || !prompt} 
+            disabled={cargando || !prompt || isLocked} 
             style={{ 
               padding: '16px 45px',
               borderRadius: '20px',
@@ -141,9 +142,12 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
               alignItems: 'center',
               gap: '12px',
               fontSize: '18px',
-              boxShadow: '0 15px 40px rgba(245, 158, 11, 0.4)'
+              boxShadow: isLocked ? 'none' : '0 15px 40px rgba(245, 158, 11, 0.4)',
+              opacity: isLocked ? 0.6 : 1,
+              background: isLocked ? 'rgba(255,255,255,0.1)' : 'var(--primary)',
+              color: isLocked ? 'var(--text-muted)' : 'var(--on-primary)'
             }}>
-            <span>{cargando ? '⏳' : '✦'}</span> {cargando ? 'Cocinando...' : 'Cook'}
+            <span>{cargando ? '⏳' : (isLocked ? '🔒' : '✦')}</span> {cargando ? 'Cocinando...' : (isLocked ? 'Esperando...' : 'Cocinar')}
           </button>
         </div>
 
@@ -177,17 +181,17 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
         <div className="history-section" style={{ maxWidth: '1200px', padding: '0 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px' }}>
             <div>
-              <span className="hero-badge-premium" style={{ marginBottom: '10px' }}>Tradition & Innovation</span>
-              <h2 style={{ fontSize: '48px', fontWeight: '900', margin: 0, letterSpacing: '-1px' }}>Recent Masterpieces</h2>
+              <span className="hero-badge-premium" style={{ marginBottom: '10px' }}>Tradición e Innovación</span>
+              <h2 style={{ fontSize: '48px', fontWeight: '900', margin: 0, letterSpacing: '-1px' }}>Obras Maestras <span>Recientes</span></h2>
             </div>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                <button 
                 onClick={onClearHistory}
                 style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '11px', cursor: 'pointer', fontWeight: '800', letterSpacing: '0.1em' }}
               >
-                CLEAR ALL
+                LIMPIAR TODO
               </button>
-              <span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '14px', cursor: 'pointer' }}>View All History →</span>
+              <span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '14px', cursor: 'pointer' }}>Ver Historial Completo →</span>
             </div>
           </div>
           

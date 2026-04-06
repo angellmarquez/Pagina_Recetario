@@ -4,14 +4,14 @@ import { apiGuardarReceta } from '../services/apiService';
 import CinematicLoader from '../components/CinematicLoader';
 import './PlanSemanal.css';
 
-const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
+const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIAUntil, onRateLimit }) => {
   const [fechaActual, setFechaActual] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setFechaActual(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  const formatearFecha = (date) => date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const formatearFecha = (date) => date.toLocaleDateString('es-VE', { weekday: 'long', month: 'long', day: 'numeric' });
   const getComidaPrioridad = () => {
     const hora = fechaActual.getHours();
     if (hora < 11) return 'desayuno';
@@ -55,7 +55,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       return {
-        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        name: d.toLocaleDateString('es-VE', { weekday: 'short' }),
         date: d.getDate(),
         isToday: d.toDateString() === fechaActual.toDateString(),
         fullDate: d
@@ -118,6 +118,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
   };
 
   const generarPlan = async () => {
+    if (lockIAUntil && Date.now() < lockIAUntil) return;
     setCargando(true); setErrorPlan(''); setAutoSentWasap(false); setShowDetails(false);
     try {
       const activeTags = dietaryStyle.filter(t => t.activo).map(t => t.nombre);
@@ -133,7 +134,13 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
         setPlanIA(plan); setSelectedMeal(prioridad);
         await enviarWhatsAppAuto(plan, prioridad);
       }
-    } catch (e) { setErrorPlan('Error al generar plan.'); }
+    } catch (e) { 
+      if (e.type === 'RATE_LIMIT') {
+        if (onRateLimit) onRateLimit(e.segundos);
+      } else {
+        setErrorPlan('Error al generar plan.'); 
+      }
+    }
     finally { setCargando(false); }
   };
 
@@ -191,18 +198,18 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
 
       <header className="hero-header stagger-1">
         <div className="hero-text-content">
-          <div className="hero-badge-premium">✨ MasterChef Daily Planner</div>
-          <h1 className="hero-main-title">Professional <span>Meal</span> Plan</h1>
-          <p className="hero-tagline">Automated delivery. Heritage recipes. Personalized for you.</p>
+          <div className="hero-badge-premium">✨ MasterChef Plan Diario</div>
+          <h1 className="hero-main-title">Plan <span>Nutricional</span> Profesional</h1>
+          <p className="hero-tagline">Entrega automatizada. Recetas tradicionales. Personalizado para ti.</p>
         </div>
-        <button onClick={generarPlan} disabled={cargando} className="btn-premium-action btn-generate-main">
-          <span>✨</span> {cargando ? 'Cooking...' : 'Craft & Send Plan'}
+        <button onClick={generarPlan} disabled={cargando || (lockIAUntil && Date.now() < lockIAUntil)} className="btn-premium-action btn-generate-main">
+          <span>{lockIAUntil && Date.now() < lockIAUntil ? '⏳' : '✨'}</span> {cargando ? 'Cocinando...' : (lockIAUntil && Date.now() < lockIAUntil ? 'Esperando...' : 'Crear y Enviar Plan')}
         </button>
       </header>
 
       <section className="config-dashboard stagger-2">
         <div className="config-card">
-          <span className="config-label">Capacity</span><h3 className="config-title">Portions</h3>
+          <span className="config-label">Capacidad</span><h3 className="config-title">Porciones</h3>
           <div className="portion-stepper">
             <button className="stepper-btn" onClick={() => setNumPersonas(Math.max(1, numPersonas - 1))}>-</button>
             <span className="stepper-value">{numPersonas.toString().padStart(2, '0')}</span>
@@ -211,12 +218,12 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
         </div>
         <div className="config-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <span className="config-label">Nuance</span>
+            <span className="config-label">Matices</span>
             <button onClick={handleSaveToProfile} disabled={isSyncing} className="active-save-btn">
-              {isSyncing ? 'Saving...' : 'Sync Preferences'}
+              {isSyncing ? 'Sincronizando...' : 'Guardar en Perfil'}
             </button>
           </div>
-          <h3 className="config-title">Dietary Profile</h3>
+          <h3 className="config-title">Perfil Dietético</h3>
           <div className="tag-container">
             {dietaryStyle.map(tag => (
               <button key={tag.nombre} onClick={() => toggleTag(tag.nombre)} className={`dietary-tag ${tag.activo ? 'active' : ''}`}>
@@ -226,13 +233,13 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
             {isAdding ? (
               <input autoFocus className="glass-input-special" style={{ width: '120px', height: '40px' }} value={newTagInput} onChange={(e) => setNewTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTag()} placeholder="..." />
             ) : (
-              <button className="dietary-tag" style={{ borderStyle: 'dashed' }} onClick={() => setIsAdding(true)}>+ Add Filter</button>
+              <button className="dietary-tag" style={{ borderStyle: 'dashed' }} onClick={() => setIsAdding(true)}>+ Añadir Filtro</button>
             )}
           </div>
         </div>
         <div className="config-card">
-          <span className="config-label">Special Cravings</span><h3 className="config-title">Daily Request</h3>
-          <textarea className="glass-input-special" value={promptAdicional} onChange={(e) => setPromptAdicional(e.target.value)} placeholder="No onions, extra spicy..." />
+          <span className="config-label">Antojos Especiales</span><h3 className="config-title">Petición del Día</h3>
+          <textarea className="glass-input-special" value={promptAdicional} onChange={(e) => setPromptAdicional(e.target.value)} placeholder="Sin cebolla, extra picante..." />
         </div>
       </section>
 
@@ -245,23 +252,23 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
              <span style={{ fontSize: '32px' }}>{autoSentWasap ? '✅' : '🍽️'}</span>
              <div>
-                <strong>{autoSentWasap ? 'Sent to WhatsApp!' : 'Weekly Plan Generated!'}</strong>
+                <strong>{autoSentWasap ? '¡Enviado a WhatsApp!' : '¡Plan Semanal Generado!'}</strong>
                 <p style={{ margin: '5px 0 0', opacity: 0.8 }}>
                   {autoSentWasap 
-                    ? `The complete digital recipe for your ${prioridad} is on your phone.` 
-                    : `View your personalized recipes below.`}
+                    ? `La receta digital completa para tu ${prioridad} ya está en tu teléfono.` 
+                    : `Mira tus recetas personalizadas a continuación.`}
                 </p>
              </div>
           </div>
           <button onClick={() => setShowDetails(!showDetails)} className="btn-secondary-premium">
-            {showDetails ? 'Hide Details' : 'View Full Recipe 📖'}
+            {showDetails ? 'Ocultar Detalles' : 'Ver Receta Completa 📖'}
           </button>
         </div>
       )}
 
       {/* RESTORED PROFESSIONAL CALENDAR */}
       <section className="calendar-section stagger-3">
-        <h2 className="calendar-title">Daily Overview</h2>
+        <h2 className="calendar-title">Vista Diaria</h2>
         <div className="calendar-grid-premium">
           {diasSemana.map((dia, idx) => (
             <div key={idx} className={`day-card-premium ${dia.isToday ? 'is-today' : ''}`}>
@@ -298,14 +305,14 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
                     <div className="meta-badge">👨‍👩‍👧‍👦 {numPersonas} Pax</div>
                  </div>
                  <p className="recipe-story">{planIA.metadatos?.mensaje_abuela}</p>
-                 <button onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} className="btn-premium-action btn-generate-main" style={{ width: '100%', justifyContent: 'center' }}>💾 Save Masterpiece</button>
+                 <button onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} className="btn-premium-action btn-generate-main" style={{ width: '100%', justifyContent: 'center' }}>💾 Guardar Obra Maestra</button>
                </div>
                <div className="recipe-details">
-                  <h4 className="section-title-premium">Mastery Ingredients</h4>
+                  <h4 className="section-title-premium">Ingredientes Magistrales</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 40px', marginBottom: '40px' }}>
                     {planIA.comidas[selectedMeal].ingredientes?.map((ing, i) => <div key={i} className="ingredient-item-premium">✓ {ing}</div>)}
                   </div>
-                  <h4 className="section-title-premium">Method Of Preparation</h4>
+                  <h4 className="section-title-premium">Método de Preparación</h4>
                   <div className="steps-container">
                     {planIA.comidas[selectedMeal].pasos?.map((p, i) => (
                       <div key={i} className="step-card-premium">

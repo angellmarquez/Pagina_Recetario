@@ -19,10 +19,10 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
   };
 
   const getBadgeLabel = (type) => {
-    if (type === 'signature') return 'SIGNATURE';
-    if (type === 'heritage') return 'HERITAGE';
+    if (type === 'signature') return 'ESPECIAL';
+    if (type === 'heritage') return 'HERENCIA';
     if (type === 'popular') return 'POPULAR';
-    return 'CLASSIC';
+    return 'CLÁSICO';
   };
 
   const fetchFeed = async (isLoadMore = false) => {
@@ -117,7 +117,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
             textTransform: 'uppercase',
             display: 'block',
             marginBottom: '8px'
-          }}>TRADITION & INNOVATION</span>
+          }}>TRADICIÓN E INNOVACIÓN</span>
           <h2 style={{ fontSize: '36px', fontWeight: '900', margin: 0, color: 'white' }}>Explorar Recetas</h2>
         </div>
         
@@ -135,7 +135,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
             gap: '8px',
             padding: '10px 0'
           }}>
-          View All Classics <span style={{ fontSize: '18px' }}>→</span>
+          Ver Todos los Clásicos <span style={{ fontSize: '18px' }}>→</span>
         </button>
       </div>
 
@@ -165,7 +165,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
                 <div style={{ position: 'absolute', bottom: '20px', left: '20px', display: 'flex', gap: '10px' }}>
                   <span className={`badge badge-${badgeType}`}>{getBadgeLabel(badgeType)}</span>
                   <span className="badge" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    CHEF'S CHOICE
+                    ELECCIÓN DEL CHEF
                   </span>
                 </div>
               </div>
