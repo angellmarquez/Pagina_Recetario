@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Groq from 'groq-sdk';
+import RecipeImage from './components/RecipeImage';
 
 const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
   const [feed, setFeed] = useState([]);
@@ -154,10 +155,10 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
             >
               {/* Image Container */}
               <div style={{ position: 'relative', height: '350px', overflow: 'hidden' }}>
-                <img 
-                  src={`http://localhost:3000/api/recetas/imagen?q=${encodeURIComponent(receta.titulo)}`} 
-                  alt={receta.titulo}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                <RecipeImage 
+                  query={receta.titulo} 
+                  origin="venezuela" 
+                  alt={receta.titulo} 
                 />
                 
                 {/* Overlay Badges */}

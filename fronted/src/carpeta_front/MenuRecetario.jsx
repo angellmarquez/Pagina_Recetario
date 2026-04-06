@@ -9,6 +9,7 @@ import PlanSemanalView from './views/PlanSemanalView';
 import ProfileView from './views/ProfileView';
 import CountryExplorationView from './views/CountryExplorationView';
 import Footer from './components/Footer';
+import RecipeImage from './components/RecipeImage';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
 import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta } from './services/apiService';
 
@@ -129,8 +130,8 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                         <img src={getRecipeImage(r.titulo)} alt={r.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(15, 23, 42, 1) 0%, transparent 100%)' }} />
                         <button onClick={(e) => handleEliminarReceta(e, r.id_receta)} 
-                                style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(239, 68, 68, 0.5)', border: 'none', width: '44px', height: '44px', borderRadius: '50%', color: 'white', backdropFilter: 'blur(10px)', cursor: 'pointer', transition: '0.3s' }}
-                                onMouseOver={(e) => e.target.style.background = '#EF4444'}>🗑️</button>
+                                 style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(239, 68, 68, 0.5)', border: 'none', width: '44px', height: '44px', borderRadius: '50%', color: 'white', backdropFilter: 'blur(10px)', cursor: 'pointer', transition: '0.3s' }}
+                                 onMouseOver={(e) => e.target.style.background = '#EF4444'}>🗑️</button>
                       </div>
                       <div style={{ padding: '30px', marginTop: '-30px', position: 'relative', zIndex: 2 }}>
                         <span style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '5px 12px', borderRadius: '40px', fontSize: '11px', fontWeight: '900', display: 'inline-block', marginBottom: '12px' }}>COLLECTION ITEM</span>

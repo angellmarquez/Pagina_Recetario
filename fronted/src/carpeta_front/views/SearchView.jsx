@@ -1,5 +1,6 @@
 import React from 'react';
 import arepaBg from '../../assets/arepas-4.jpg';
+import RecipeImage from '../components/RecipeImage';
 
 // Helper to get a professional image for Venezuelan dishes
 export const getRecipeImage = (titulo) => {
@@ -198,7 +199,11 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
                 onClick={() => onSelectRecipe(recipe)}
               >
                 <div className="recipe-image-container">
-                  <img src={getRecipeImage(recipe.titulo)} alt={recipe.titulo} />
+                  <RecipeImage 
+                    query={recipe.titulo} 
+                    origin={isNevera ? 'venezuela' : 'region'} 
+                    alt={recipe.titulo} 
+                  />
                   <div className="floating-badge badge-left">SIGNATURE</div>
                   <div className="floating-badge badge-right">CHEF'S CHOICE</div>
                 </div>

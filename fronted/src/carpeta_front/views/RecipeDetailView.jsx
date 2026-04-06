@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, Users, BarChart3, Flame, ChefHat, Sparkles, ArrowLeft, Utensils } from 'lucide-react';
+import RecipeImage from '../components/RecipeImage';
 
 const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuardado, setRecetaActiva, setPrompt, setRespuestaIA }) => {
   return (
@@ -16,11 +17,11 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
       
       {/* HEADER HERO (Expansive Image) */}
       <div style={{ position: 'relative', height: '400px', width: '100%', overflow: 'hidden' }}>
-        <img 
-          src={`http://localhost:3000/api/recetas/imagen?q=${encodeURIComponent(recetaActiva.titulo)}`} 
-          alt={recetaActiva.titulo}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }}
-          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?q=80&w=2070&auto=format&fit=crop'; }}
+        <RecipeImage 
+          query={recetaActiva.titulo} 
+          origin="venezuela" 
+          alt={recetaActiva.titulo} 
+          style={{ height: '100%', width: '100%', filter: 'brightness(0.8)' }}
         />
         
         {/* Overlay Gradients */}
