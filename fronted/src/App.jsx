@@ -51,11 +51,14 @@ function App() {
         const actualizado = res.usuario ? res.usuario : { ...usuario, ...nuevosDatos };
         setUsuario(actualizado);
         localStorage.setItem('venia_usuario', JSON.stringify(actualizado));
+        return true;
       } else {
         alert('No se pudo actualizar el perfil: ' + (res.mensaje || 'Error desconocido'));
+        return false;
       }
     } catch (e) {
       alert('Error de conexión al actualizar el perfil');
+      return false;
     }
   };
 

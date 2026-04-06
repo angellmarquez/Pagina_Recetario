@@ -163,6 +163,14 @@ router.post('/registro', async (req, res) => {
         return res.status(400).json({ success: false, mensaje: 'Formato de email inválido' });
     }
 
+    // Sanitizar teléfono si existe (solo números)
+    if (telefono) {
+        telefono = telefono.replace(/\D/g, '');
+        if (telefono.length < 7) {
+            return res.status(400).json({ success: false, mensaje: 'El teléfono es demasiado corto' });
+        }
+    }
+
     if (password.length < 5 || password.length > 20) {
         return res.status(400).json({ success: false, mensaje: 'La contraseña debe tener mínimo 5 caracteres' });
     }
@@ -173,18 +181,24 @@ router.post('/registro', async (req, res) => {
         return res.status(400).json({ success: false, mensaje: 'La contraseña debe incluir números y letras' });
     }
 
-    if (telefono && !/^\d+$/.test(telefono)) {
-        return res.status(400).json({ success: false, mensaje: 'El teléfono debe contener solo números' });
-    }
-
     try {
+        const eTelefono = encrypt(telefono);
+
+        // Verificar si el teléfono ya existe
+        if (telefono) {
+            const checkPhone = 'SELECT id_usuario FROM usuarios WHERE telefono = ?';
+            const [phoneResults] = await connection.promise().query(checkPhone, [eTelefono]);
+            if (phoneResults.length > 0) {
+                return res.status(409).json({ success: false, mensaje: '¡Mijo, este teléfono ya está registrado con otra cuenta!' });
+            }
+        }
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Encriptamos los datos personales
         const eNombre = encrypt(nombre);
         const eEmail = encrypt(email);
-        const eTelefono = encrypt(telefono);
 
         // Procesar preferencias_dieteticas como JSON
         let preferencias = '';
@@ -225,7 +239,7 @@ router.post('/registro', async (req, res) => {
 });
 
 // Ruta para actualizar perfil (preferencias y nombre)
-router.put('/perfil/:id', (req, res) => {
+router.put('/perfil/:id', async (req, res) => {
     const { id } = req.params;
     let { preferencias_dieteticas, nombre, telefono, bio, email } = req.body;
 
@@ -254,8 +268,21 @@ router.put('/perfil/:id', (req, res) => {
     }
 
     if (telefono !== undefined && telefono !== null && telefono.toString().trim() !== '') {
-        updates.push('telefono = ?');
-        values.push(encrypt(telefono.toString().trim()));
+        let cleanPhone = telefono.toString().replace(/\D/g, '');
+        const eTelefono = encrypt(cleanPhone);
+        
+        // Verificar que no lo use otro mijo
+        try {
+            const [existing] = await connection.promise().query('SELECT id_usuario FROM usuarios WHERE telefono = ? AND id_usuario != ?', [eTelefono, id]);
+            if (existing.length > 0) {
+                return res.status(409).json({ success: false, mensaje: '¡Epa! Ese teléfono ya lo está usando otro usuario.' });
+            }
+            updates.push('telefono = ?');
+            values.push(eTelefono);
+        } catch (err) {
+            console.error("Update Phone Error:", err);
+            return res.status(500).json({ success: false, mensaje: 'Error al validar teléfono' });
+        }
     }
 
     if (nombre !== undefined && nombre !== null && nombre.toString().trim() !== '') {
@@ -289,7 +316,6 @@ router.put('/perfil/:id', (req, res) => {
             }
             const user = results2[0];
             // Desencriptar campos
-            const { decrypt } = require('./encryption');
             let preferencias = decrypt(user.preferencias_dieteticas);
             let preferenciasParsed = preferencias;
             try {

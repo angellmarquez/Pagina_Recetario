@@ -51,6 +51,12 @@ connection.connect((err) => {
                     } else {
                         connection.query("ALTER TABLE usuarios MODIFY COLUMN telefono VARCHAR(255)");
                     }
+                    // Asegurar que sea único (mismo mijo, distinto teléfono)
+                    connection.query("SHOW INDEX FROM usuarios WHERE Column_name = 'telefono'", (errIdx, resIdx) => {
+                        if (!errIdx && resIdx.length === 0) {
+                            connection.query("ALTER TABLE usuarios ADD UNIQUE (telefono)");
+                        }
+                    });
                 });
                 connection.query("SHOW COLUMNS FROM usuarios LIKE 'bio'", (err, results) => {
                     if (err) throw err;

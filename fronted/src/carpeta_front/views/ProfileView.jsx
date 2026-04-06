@@ -93,14 +93,16 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   };
 
   // Guardar cambios
-  const handleSave = () => {
+  const handleSave = async () => {
     const nuevosErrores = validarCampos();
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
     if (onActualizarUsuario) {
-      onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
-      setModalStatus('success');
-      setTimeout(() => setModalStatus(null), 3000);
+      const exito = await onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
+      if (exito) {
+        setModalStatus('success');
+        setTimeout(() => setModalStatus(null), 3000);
+      }
     }
   };
 
