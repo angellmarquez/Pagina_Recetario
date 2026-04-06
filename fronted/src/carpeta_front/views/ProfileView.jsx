@@ -52,13 +52,9 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
     }
   };
 
-  // Validaciones para nombre, teléfono y correo
-  // Guardar cambios original sin validaciones personalizadas
-
   // Validación de campos
   const validarCampos = () => {
     const nuevosErrores = {};
-    // Nombre
     if (!nombre || nombre.trim().length === 0) {
       nuevosErrores.nombre = 'El nombre es obligatorio.';
     } else if (nombre.length > 30) {
@@ -66,18 +62,15 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
     } else if (/[0-9]/.test(nombre)) {
       nuevosErrores.nombre = 'El nombre no puede contener números.';
     }
-    // Bio
     if (bio.length > 50) {
       nuevosErrores.bio = 'La bio no puede tener más de 50 caracteres.';
     }
-    // Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || email.trim().length === 0) {
       nuevosErrores.email = 'El email es obligatorio.';
     } else if (!emailRegex.test(email)) {
       nuevosErrores.email = 'El email no es válido.';
     }
-    // Teléfono
     if (telefono && telefono.length > 0 && !/^\d{11}$/.test(telefono)) {
       nuevosErrores.telefono = 'El teléfono debe tener exactamente 11 números.';
     }
@@ -228,10 +221,9 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
           </div>
         </div>
 
-        {/* Columna Derecha: Dietary Style y Elite Box */}
+        {/* Columna Derecha: Dietary Style */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
-          {/* Dietary Style Card - Proportionate to Form height */}
           <div className="glass-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', height: '100%', flex: 1 }}>
             <h4 style={{ fontSize: '19px', display: 'flex', alignItems: 'center', gap: '12px', margin: '0 0 30px', fontWeight: '800' }}>
               <span style={{ color: 'var(--primary)' }}>🍳</span> Dietary Style
@@ -303,25 +295,9 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
               </p>
             </div>
           </div>
-
-          <div className="glass-card" style={{ 
-            padding: '30px', 
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(30, 41, 59, 0.5) 100%)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
-          }}>
-            <h4 style={{ fontSize: '18px', margin: '0 0 5px', fontWeight: '900' }}>Modern Hearth Elite</h4>
-            <p style={{ margin: '0 0 20px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>You've unlocked 14 regional badges.</p>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', border: '2px solid rgba(255,255,255,0.1)' }}>🥇</div>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#fb7185', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', border: '2px solid rgba(255,255,255,0.1)' }}>⭐</div>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', color: 'white' }}>+12</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Footer Settings */}
       <div className="glass-card" style={{ marginTop: '40px', padding: '35px 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--outline-variant)' }}>
         <div>
           <h4 style={{ fontSize: '18px', margin: '0 0 8px', fontWeight: '900' }}>Account Privacy</h4>
@@ -338,6 +314,4 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
   );
 };
 
-
 export default ProfileView;
-
