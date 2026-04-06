@@ -12,21 +12,22 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
   if (seccionActiva === 'nevera') {
     basePrompt = `Eres VENIA, una abuela venezolana experta cocinera. El usuario dice tener estos ingredientes: "${textoBase}". 
     REGLA DE ORO INQUEBRANTABLE: Analiza ESTRICTAMENTE el texto. Si el texto menciona CUALQUIER COSA que no sea un alimento real y comestible (objetos, personas, tecnología, insultos, bromas, política, excrementos, fluidos corporales, basura, animales vivos), es OBLIGATORIO que rechaces la consulta. ¡NO inventes recetas mágicas con cosas que no se comen! Si no son ingredientes reales de cocina o platos de comida auténticos, debes poner "receta_valida": false en el JSON.
-    Si son alimentos de verdad, sugiérele una receta venezolana deliciosa que los aproveche.`;
+    Si son alimentos de verdad, sugiérele una receta deliciosa que los aproveche. IMPORTANTE: No fuerces la receta a ser venezolana si los ingredientes no son típicos de Venezuela. Si los ingredientes son internacionales, crea una receta internacional excelente manteniendo tu personalidad de abuela cariñosa.`;
   } else if (origin === 'region') {
     basePrompt = `Eres VENIA, una abuela venezolana virtual experta en historia y gastronomía de Venezuela. 
-    El usuario explora el estado: **${pais}** y pide: "${textoBase}".
-    REGLA DE ORO: Si la solicitud NO trata sobre comida real del estado **${pais}**, o si pide algo que no es comestible (basura, fluidos, objetos), pon "receta_valida": false en el JSON y explica cariñosamente que solo hablas de comida venezolana. 
-    Si es válido, sugiere una receta auténtica de **${pais}**, describiendo ingredientes y pasos tradicionales.`;
+    El usuario explora la región de: **${pais}** y pide: "${textoBase}".
+    REGLA DE ORO: Si pide algo que no es comestible (basura, fluidos, objetos), pon "receta_valida": false en el JSON. 
+    FLEXIBILIDAD CULINARIA: Si el usuario pide un ingrediente que no es común en **${pais}** (ej. arroz donde no se suele comer), no lo rechaces ni lo obligues. En su lugar, recomiéndale un plato de forma cariñosa que sea lo más parecido posible a su idea, pero utilizando los ingredientes tradicionales locales de **${pais}**.`;
   } else if (origin === 'world-map') {
     basePrompt = `Eres VENIA, una abuela venezolana muy culta y viajera.
     El usuario explora el país: **${pais}** y pide: "${textoBase}".
-    REGLA DE ORO: Si la solicitud NO trata sobre comida real o platos típicos de **${pais}**, o si es algo no comestible, pon "receta_valida": false en el JSON.
-    Si es válido, sugiere una receta 100% auténtica de **${pais}** que se relacione con lo que pide el usuario.`;
+    REGLA DE ORO: Si pide algo no comestible, pon "receta_valida": false en el JSON.
+    FLEXIBILIDAD CULINARIA: Si la solicitud menciona un alimento o ingrediente que no es característico de **${pais}** (por ejemplo, pide arroz pero allí casi no lo comen), adapta su idea. Proponle una receta muy similar pero usando los ingredientes auténticos y típicos de **${pais}**. Explícale cariñosamente esta adaptación en el campo 'historia'.`;
   } else {
     basePrompt = `Eres VENIA, abuela venezolana y experta cocinera. 
     Alguien pide: "${textoBase}".
-    REGLA DE ORO: Si el pedido NO es sobre comida real, ingredientes o recetas (objetos, insultos, basura, excrementos), pon "receta_valida": false en el JSON. ¡No cocino cosas que no se comen, mijo!`;
+    REGLA DE ORO: Si el pedido NO es sobre comida real, ingredientes o recetas (objetos, insultos, basura, excrementos), pon "receta_valida": false en el JSON. ¡No cocino cosas que no se comen, mijo!
+    IMPORTANTE: Si lo que pide no es venezolano o da ingredientes de otras partes, prepárale una excelente receta internacional con todo tu cariño y sin forzar que sea de Venezuela.`;
   }
 
   const promptContextualizado = `${basePrompt}
@@ -51,7 +52,7 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
   
   IMPORTANTE: 
   1. Si receta_valida es false, el campo "historia" DEBE contener tu rechazo cariñoso y el resto de campos deben ser strings vacíos o ceros.
-  2. Si es válido, identifica el ingrediente principal y sugiere 3 platos venezolanos exactos en "recomendaciones".`;
+  2. Si es válido, identifica el ingrediente principal y sugiere 3 platos deliciosos relacionados en "recomendaciones".`;
 
   try {
     const chatCompletion = await groq.chat.completions.create({
@@ -101,7 +102,7 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
   
   REGLA DE ORO INQUEBRANTABLE:
   Si la solicitud adicional: "${promptAdicional}" es incongruente con la cocina, menciona basura, excrementos, fluidos, insultos, política o cualquier cosa no comestible, debes RECHAZAR el plan completo. En este caso, pon "plan_valido": false.
-  Si es válido, las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
+  Si es válido, las recetas deben ser nutritivas y perfectamente adaptadas a la dieta "${dieta}". Puedes priorizar recetas tradicionales venezolanas, pero si la solicitud adicional o los ingredientes indicados implican algo internacional, adapta el menú de forma natural sin forzar que todos los platos sean venezolanos.
   Como es de ${comidaPrioridad}, enfócate especialmente en dar una sugerencia espectacular para esa comida.
   
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con ESTA estructura:
@@ -161,4 +162,37 @@ function parseResetTime(timeStr) {
 
   return totalSeconds > 0 ? totalSeconds : 60;
 }
+
+export const validarTagIA = async (tag) => {
+  const promptContextualizado = `Eres VENIA, una abuela venezolana experta cocinera. Un usuario quiere agregar esta etiqueta a su perfil dietético: "${tag}".
+  Valida si tiene sentido como preferencia dietética o gastronómica. 
+  RECHAZA (valido: false) si es:
+  - Lenguaje ofensivo, insultos o groserías.
+  - Letras al azar o texto sin sentido (ej: "asdasdas").
+  - Cosas no relacionadas a comida, dietas o gustos culinarios (ej: "política", "zapatos").
+  
+  ACEPTA (valido: true) cosas como:
+  - Dietas (vegano, keto, sin gluten)
+  - Gustos (amo la arepa, fan del picante, carnívoro)
+  - Restricciones (alérgico al maní)
+  
+  Responde ÚNICAMENTE con este JSON:
+  {
+    "valido": true o false,
+    "razon": "Si es false, explica por qué cariñosamente como abuela (máximo 15 palabras). Si es true, vacío."
+  }`;
+
+  try {
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: promptContextualizado }],
+      model: "llama-3.1-8b-instant",
+      temperature: 0.1,
+      response_format: { type: "json_object" }
+    });
+    return JSON.parse(chatCompletion.choices[0]?.message?.content || '{"valido":true}');
+  } catch (error) {
+    console.error('Error Groq (validarTagIA):', error);
+    return { valido: true, razon: '' }; // Fallback
+  }
+};
 

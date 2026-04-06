@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { validarTagIA } from '../services/aiService';
 
 const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   const [nombre, setNombre] = React.useState(usuario?.nombre || 'Alejandro Rodríguez');
@@ -28,6 +28,9 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   const [newTagInput, setNewTagInput] = React.useState('');
   const [modalStatus, setModalStatus] = React.useState(null); // 'warning' | 'success' | null
   const [errores, setErrores] = React.useState({});
+  const [tagError, setTagError] = React.useState('');
+  const [validandoTag, setValidandoTag] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const hasChanges = React.useMemo(() => {
     const isNombreDiff = nombre !== (usuario?.nombre || 'Alejandro Rodríguez');
@@ -58,12 +61,41 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   };
 
   // Agregar nuevo tag
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
+    setTagError('');
     const nombre = newTagInput.trim();
-    if (nombre && !dietaryStyle.some(tag => tag.nombre === nombre)) {
+    
+    if (!nombre) return;
+    
+    // Validación local primero
+    if (nombre.length > 20) {
+      setTagError('Muy largo (máximo 20 caracteres).');
+      return;
+    }
+    
+    if (dietaryStyle.some(tag => tag.nombre.toLowerCase() === nombre.toLowerCase())) {
+      setTagError('Esta etiqueta ya existe.');
+      return;
+    }
+
+    setValidandoTag(true);
+    try {
+      const resp = await validarTagIA(nombre);
+      if (!resp.valido) {
+        setTagError(resp.razon || 'La abuela dice que esto no tiene sentido.');
+        return;
+      }
+      
       setDietaryStyle([...dietaryStyle, { nombre, activo: true }]);
       setNewTagInput('');
       setIsAdding(false);
+    } catch (e) {
+      // En caso de error de red, lo permitimos pero lo limpiamos
+      setDietaryStyle([...dietaryStyle, { nombre, activo: true }]);
+      setNewTagInput('');
+      setIsAdding(false);
+    } finally {
+      setValidandoTag(false);
     }
   };
 
@@ -98,10 +130,18 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
     if (onActualizarUsuario) {
-      const exito = await onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
-      if (exito) {
-        setModalStatus('success');
-        setTimeout(() => setModalStatus(null), 3000);
+      setIsSaving(true);
+      try {
+        const exito = await onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
+        // Assume éxito by default unless throws, though backend might return success bool
+        if (exito !== false) {
+          setModalStatus('success');
+          setTimeout(() => setModalStatus(null), 3000);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -163,15 +203,17 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             </button>
             <button 
               onClick={handleSave}
+              disabled={isSaving}
+              className={isSaving ? "btn-saving-pulse" : ""}
               style={{ 
                 background: modalStatus === 'success' ? '#10b981' : 'var(--primary)', color: modalStatus === 'success' ? 'white' : 'var(--on-primary)', padding: '16px 36px', 
-                borderRadius: '40px', border: 'none', fontWeight: '800', cursor: 'pointer',
+                borderRadius: '40px', border: 'none', fontWeight: '800', cursor: isSaving ? 'wait' : 'pointer',
                 boxShadow: '0 15px 30px rgba(245, 158, 11, 0.3)',
                 transition: 'all 0.4s ease',
                 fontSize: '15px',
-                opacity: hasChanges || modalStatus === 'success' ? 1 : 0.7
+                opacity: (hasChanges || modalStatus === 'success' || isSaving) ? 1 : 0.7
               }}>
-              {modalStatus === 'success' ? '¡Guardado!' : 'Guardar Cambios'}
+              {isSaving ? 'Actualizando...' : modalStatus === 'success' ? '¡Guardado!' : 'Guardar Cambios'}
             </button>
           </div>
         </div>
@@ -313,13 +355,14 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                   />
                   <button 
                     onClick={handleAddTag}
+                    disabled={validandoTag}
                     style={{ 
-                      background: 'var(--primary)', color: 'var(--on-primary)', 
+                      background: validandoTag ? 'var(--text-muted)' : 'var(--primary)', color: 'var(--on-primary)', 
                       padding: '10px 18px', borderRadius: '15px', border: 'none', 
-                      fontWeight: '800', fontSize: '12px', cursor: 'pointer' 
+                      fontWeight: '800', fontSize: '12px', cursor: validandoTag ? 'wait' : 'pointer' 
                     }}
-                  >Añadir</button>
-                  <button onClick={() => setIsAdding(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+                  >{validandoTag ? 'Validando...' : 'Añadir'}</button>
+                  <button onClick={() => { setIsAdding(false); setTagError(''); }} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>✕</button>
                 </div>
               ) : (
                 <button 
@@ -329,6 +372,12 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                 </button>
               )}
             </div>
+            
+            {tagError && (
+              <div style={{ color: '#EF4444', fontSize: '12px', fontWeight: 'bold', marginTop: '10px' }}>
+                👵🏽 {tagError}
+              </div>
+            )}
 
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '25px', borderRadius: '25px', position: 'relative', marginTop: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
               <div style={{ position: 'absolute', top: '12px', right: '12px', color: 'var(--text-muted)', fontSize: '16px', opacity: 0.5 }}>ⓘ</div>
@@ -415,6 +464,14 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseSaving {
+          0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+          70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        .btn-saving-pulse {
+          animation: pulseSaving 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
         }
         .btn-gold { 
           padding: 15px 30px; border-radius: 100px; fontSize: 15px; fontWeight: 800;

@@ -34,7 +34,7 @@ const RecipeDetailView = ({ recetaActiva, guardarReceta, guardando, mensajeGuard
         <button 
           onClick={() => { setRecetaActiva(null); setPrompt(''); setRespuestaIA(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           style={{ 
-            position: 'absolute', top: '30px', left: '30px', zIndex: 10,
+            position: 'absolute', top: '30px', left: '30px', zIndex: 1000,
             background: 'rgba(6,14,32,0.6)', backdropFilter: 'blur(10px)',
             color: 'white', border: '1px solid rgba(255,255,255,0.2)', 
             padding: '10px 20px', borderRadius: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: '600', transition: 'all 0.3s' 

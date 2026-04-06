@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import RecipeImage from '../components/RecipeImage';
 
 // Suggestions mappings
 const countrySuggestions = {
@@ -50,7 +51,7 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
   }, [pais, isVenezuelaState]);
 
   const handleSearch = (term = null) => {
-    const finalTerm = term || prompt || `Receta típica de ${pais}`;
+    const finalTerm = term || prompt || `La receta más famosa y representativa de ${pais}`;
     generarReceta(finalTerm, tipoLugar);
   };
 
@@ -164,7 +165,7 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !cargando) handleSearch(); }}
-              placeholder={`Busca un plato de ${pais}...`}
+              placeholder={`🔎 Ej: Plato específico, o ingresa tus ingredientes...`}
               style={{ 
                 flex: 1, 
                 background: 'transparent', 
@@ -202,38 +203,43 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
             fontWeight: '800', 
             textTransform: 'uppercase', 
             letterSpacing: '0.2em',
-            marginBottom: '20px'
-          }}>PLATOS EMBLEMÁTICOS</div>
+            marginBottom: '40px'
+          }}>PLATOS EMBLEMÁTICOS PARA EMPEZAR</div>
           
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="history-grid-cinematic" style={{ textAlign: 'left' }}>
             {suggestions.map((item, idx) => (
-              <button 
+              <div 
                 key={idx} 
+                className="recipe-card-cinematic stagger-3"
                 onClick={() => { setPrompt(item); handleSearch(item); }}
-                style={{ 
-                  background: 'rgba(255, 255, 255, 0.03)', 
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  padding: '10px 24px',
-                  borderRadius: '100px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = isVenezuelaState ? '#22c55e' : 'var(--primary)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                }}
               >
-                {item}
-              </button>
+                <div className="recipe-image-container">
+                  <RecipeImage 
+                    query={item} 
+                    origin={tipoLugar} 
+                    alt={item} 
+                  />
+                  <div className="floating-badge badge-left">{isVenezuelaState ? 'TRADICIÓN' : 'CLÁSICO'}</div>
+                  <div className="floating-badge badge-right">RECOMENDADO</div>
+                </div>
+                
+                <div className="recipe-body-premium">
+                  <div className="recipe-title-cinematic" style={{ fontSize: '20px', marginBottom: '15px' }}>
+                    {item}
+                  </div>
+                  
+                  <p className="recipe-description-cinematic">
+                    {isVenezuelaState 
+                      ? "Un clásico indiscutible que representa el corazón y el alma de la gastronomía de este estado." 
+                      : "Una de las joyas más auténticas y sabrosas para conocer la verdadera cultura de este país."}
+                  </p>
+                  
+                  <div className="recipe-footer-tags">
+                    <span>{isVenezuelaState ? 'SABOR CRIOLLO' : 'INTERNACIONAL'}</span>
+                    <span>IMPERDIBLE</span>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>

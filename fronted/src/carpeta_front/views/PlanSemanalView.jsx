@@ -83,6 +83,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
   const [selectedMeal, setSelectedMeal] = useState(prioridad);
   const [autoSentWasap, setAutoSentWasap] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [savedMeals, setSavedMeals] = useState({});
 
   const toggleTag = (tagNombre) => setDietaryStyle(prev => prev.map(tag => tag.nombre === tagNombre ? { ...tag, activo: !tag.activo } : tag));
   const removeTagFromList = (tagNombre, e) => { e.stopPropagation(); setDietaryStyle(prev => prev.filter(tag => tag.nombre !== tagNombre)); };
@@ -119,7 +120,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
 
   const generarPlan = async () => {
     if (lockIAUntil && Date.now() < lockIAUntil) return;
-    setCargando(true); setErrorPlan(''); setAutoSentWasap(false); setShowDetails(false);
+    setCargando(true); setErrorPlan(''); setAutoSentWasap(false); setShowDetails(false); setSavedMeals({});
     try {
       const activeTags = dietaryStyle.filter(t => t.activo).map(t => t.nombre);
       const plan = await generarPlanIA({
@@ -148,7 +149,10 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
     if (!usuario?.id_usuario || !receta) return;
     const recipeToSave = { ...receta, porciones: numPersonas, tags: [tipo], historia: planIA?.metadatos?.mensaje_abuela };
     apiGuardarReceta(usuario.id_usuario, receta.nombre, recipeToSave, '')
-      .then(() => { if (addNotification) addNotification('Guardada', `Receta de ${tipo} guardada.`, 'success'); })
+      .then(() => { 
+        if (addNotification) addNotification('Guardada', `Receta de ${tipo} guardada.`, 'success'); 
+        setSavedMeals(prev => ({ ...prev, [tipo]: true }));
+      })
       .catch(() => { setErrorPlan('Error al guardar.'); });
   };
 
@@ -219,7 +223,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
         <div className="config-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <span className="config-label">Matices</span>
-            <button onClick={handleSaveToProfile} disabled={isSyncing} className="active-save-btn">
+            <button onClick={handleSaveToProfile} disabled={isSyncing} className={`active-save-btn ${isSyncing ? 'is-syncing' : ''}`}>
               {isSyncing ? 'Sincronizando...' : 'Guardar en Perfil'}
             </button>
           </div>
@@ -305,7 +309,14 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
                     <div className="meta-badge">👨‍👩‍👧‍👦 {numPersonas} Pax</div>
                  </div>
                  <p className="recipe-story">{planIA.metadatos?.mensaje_abuela}</p>
-                 <button onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} className="btn-premium-action btn-generate-main" style={{ width: '100%', justifyContent: 'center' }}>💾 Guardar Obra Maestra</button>
+                 <button 
+                  onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} 
+                  disabled={savedMeals[selectedMeal]}
+                  className="btn-premium-action btn-generate-main" 
+                  style={{ width: '100%', justifyContent: 'center', opacity: savedMeals[selectedMeal] ? 0.7 : 1 }}
+                 >
+                   {savedMeals[selectedMeal] ? '✅ Receta Guardada' : '💾 Guardar Obra Maestra'}
+                 </button>
                </div>
                <div className="recipe-details">
                   <h4 className="section-title-premium">Ingredientes Magistrales</h4>

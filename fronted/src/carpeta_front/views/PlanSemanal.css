@@ -126,6 +126,37 @@
   color: white;
 }
 
+/* Save to Profile Button */
+.active-save-btn {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: var(--primary);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.active-save-btn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
+}
+
+@keyframes pulseSavingPlan {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.active-save-btn.is-syncing {
+  animation: pulseSavingPlan 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+  cursor: wait;
+}
+
 /* Tag Cloud Dynamic Fix */
 .tag-container {
   display: flex;
