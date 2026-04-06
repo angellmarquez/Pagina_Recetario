@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const ProfileView = ({ usuario, onActualizarUsuario }) => {
+const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   const [nombre, setNombre] = React.useState(usuario?.nombre || 'Alejandro Rodríguez');
   const [email, setEmail] = React.useState(usuario?.email || 'alejandro.rod@venia.com');
   const [telefono, setTelefono] = React.useState(usuario?.telefono || '');
@@ -26,8 +26,23 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
   const [dietaryStyle, setDietaryStyle] = React.useState(initialDietary);
   const [isAdding, setIsAdding] = React.useState(false);
   const [newTagInput, setNewTagInput] = React.useState('');
-  const [isSaved, setIsSaved] = React.useState(false);
+  const [modalStatus, setModalStatus] = React.useState(null); // 'warning' | 'success' | null
   const [errores, setErrores] = React.useState({});
+
+  const hasChanges = React.useMemo(() => {
+    const isNombreDiff = nombre !== (usuario?.nombre || 'Alejandro Rodríguez');
+    const isEmailDiff = email !== (usuario?.email || 'alejandro.rod@venia.com');
+    const isTelefonoDiff = telefono !== (usuario?.telefono || '');
+    const isBioDiff = bio !== (usuario?.bio || '');
+    const isDietaryDiff = JSON.stringify(dietaryStyle) !== JSON.stringify(initialDietary);
+    return isNombreDiff || isEmailDiff || isTelefonoDiff || isBioDiff || isDietaryDiff;
+  }, [nombre, email, telefono, bio, dietaryStyle, usuario, initialDietary]);
+
+  React.useEffect(() => {
+    if (onDirtyStateChange) {
+      onDirtyStateChange(hasChanges);
+    }
+  }, [hasChanges, onDirtyStateChange]);
 
   // Alternar estado activo/inactivo
   const toggleTag = (tagNombre) => {
@@ -84,9 +99,31 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
     if (Object.keys(nuevosErrores).length > 0) return;
     if (onActualizarUsuario) {
       onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 3000);
+      setModalStatus('success');
+      setTimeout(() => setModalStatus(null), 3000);
     }
+  };
+
+  const handleDiscard = () => {
+    if (hasChanges) {
+      setModalStatus('warning');
+    } else {
+      // Si no hay cambios, resetear a los valores originales
+      setNombre(usuario?.nombre || 'Alejandro Rodríguez');
+      setEmail(usuario?.email || 'alejandro.rod@venia.com');
+      setTelefono(usuario?.telefono || '');
+      setBio(usuario?.bio || '');
+      setDietaryStyle(initialDietary);
+    }
+  };
+
+  const confirmDiscard = () => {
+    setNombre(usuario?.nombre || 'Alejandro Rodríguez');
+    setEmail(usuario?.email || 'alejandro.rod@venia.com');
+    setTelefono(usuario?.telefono || '');
+    setBio(usuario?.bio || '');
+    setDietaryStyle(initialDietary);
+    setModalStatus(null);
   };
 
   return (
@@ -112,24 +149,27 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
         
         <div style={{ display: 'flex', gap: '15px', paddingTop: '45px', alignItems: 'center' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {isSaved && <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓ Saved!</span>}
-            <button style={{ 
-              background: 'transparent', color: 'white', padding: '16px 36px', 
-              borderRadius: '40px', border: '1px solid var(--outline)', fontWeight: '700', cursor: 'pointer',
-              fontSize: '15px'
-            }}>
+            {modalStatus === 'success' && <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓ Quedó al pelo!</span>}
+            <button 
+              onClick={handleDiscard}
+              style={{ 
+                background: 'transparent', color: 'white', padding: '16px 36px', 
+                borderRadius: '40px', border: '1px solid var(--outline)', fontWeight: '700', cursor: 'pointer',
+                fontSize: '15px', opacity: hasChanges ? 1 : 0.5
+              }}>
               Discard
             </button>
             <button 
               onClick={handleSave}
               style={{ 
-                background: isSaved ? '#10b981' : 'var(--primary)', color: isSaved ? 'white' : 'var(--on-primary)', padding: '16px 36px', 
+                background: modalStatus === 'success' ? '#10b981' : 'var(--primary)', color: modalStatus === 'success' ? 'white' : 'var(--on-primary)', padding: '16px 36px', 
                 borderRadius: '40px', border: 'none', fontWeight: '800', cursor: 'pointer',
                 boxShadow: '0 15px 30px rgba(245, 158, 11, 0.3)',
                 transition: 'all 0.4s ease',
-                fontSize: '15px'
+                fontSize: '15px',
+                opacity: hasChanges || modalStatus === 'success' ? 1 : 0.7
               }}>
-              {isSaved ? 'Saved!' : 'Save Changes'}
+              {modalStatus === 'success' ? 'Saved!' : 'Save Changes'}
             </button>
           </div>
         </div>
@@ -309,6 +349,78 @@ const ProfileView = ({ usuario, onActualizarUsuario }) => {
           Delete Account
         </button>
       </div>
+
+      {/* MODALES DE LA ABUELA (WARNING & SUCCESS) */}
+      {modalStatus && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          zIndex: 3000, display: 'flex', justifyContent: 'center', alignItems: 'center',
+          background: 'rgba(10, 15, 29, 0.85)', backdropFilter: 'blur(15px)',
+          animation: 'fadeIn 0.3s ease'
+        }} onClick={() => setModalStatus(null)}>
+          <div 
+            className="glass-panel-premium" 
+            style={{ 
+              padding: '60px', textAlign: 'center', maxWidth: '550px', 
+              boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              border: modalStatus === 'warning' ? '1px solid #EF4444' : '1px solid #10b981',
+              animation: modalStatus === 'warning' ? 'shakeCard 0.5s cubic-bezier(.36,.07,.19,.97) both' : 'fadeInUp 0.5s ease both'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '70px', marginBottom: '20px' }}>
+              {modalStatus === 'warning' ? '👵🏽☝🏽' : '✨👵🏽✨'}
+            </div>
+            <h3 style={{ 
+              fontSize: '32px', 
+              color: modalStatus === 'warning' ? '#EF4444' : '#10b981', 
+              marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' 
+            }}>
+              {modalStatus === 'warning' ? '¡Epa mijo, cuidado!' : '¡Quedó al pelo!'}
+            </h3>
+            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>
+              {modalStatus === 'warning' 
+                ? 'No te vayas sin guardar los cambios, que la abuela se va a enojar si se pierde tu progreso.' 
+                : 'Tus preferencias se han guardado con éxito. ¡Ahora a cocinar con alma!'}
+            </p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '40px' }}>
+              {modalStatus === 'warning' ? (
+                <>
+                  <button className="btn-gold" onClick={() => setModalStatus(null)} style={{ background: 'transparent', border: '1px solid white', color: 'white' }}>
+                    VOLVER A GUARDAR
+                  </button>
+                  <button className="btn-gold" onClick={confirmDiscard} style={{ background: '#EF4444', color: 'white' }}>
+                    DESCARTAR IGUAL
+                  </button>
+                </>
+              ) : (
+                <button className="btn-gold" onClick={() => setModalStatus(null)} style={{ padding: '15px 60px' }}>
+                  ¡GRACIAS, ABUELA!
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes shakeCard {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-gold { 
+          padding: 15px 30px; border-radius: 100px; fontSize: 15px; fontWeight: 800;
+          background: var(--primary); color: var(--on-primary); border: none; cursor: pointer;
+          transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+        }
+        .btn-gold:hover { transform: scale(1.05); }
+      `}</style>
 
     </div>
   );

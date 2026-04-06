@@ -236,13 +236,21 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
         </div>
       </section>
 
-      {autoSentWasap && (
-        <div className="automation-banner stagger-2">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-             <span style={{ fontSize: '32px' }}>✅</span>
+      {planIA && (
+        <div className="automation-banner stagger-2" style={{
+           background: autoSentWasap ? 'rgba(37, 211, 102, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+           border: autoSentWasap ? '1px solid #25D366' : '1px solid rgba(255, 255, 255, 0.1)',
+           color: autoSentWasap ? '#25D366' : 'white'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+             <span style={{ fontSize: '32px' }}>{autoSentWasap ? '✅' : '🍽️'}</span>
              <div>
-                <strong>Sent to WhatsApp!</strong>
-                <p style={{ margin: '5px 0 0', opacity: 0.8 }}>The complete digital recipe for your {prioridad} is on your phone.</p>
+                <strong>{autoSentWasap ? 'Sent to WhatsApp!' : 'Weekly Plan Generated!'}</strong>
+                <p style={{ margin: '5px 0 0', opacity: 0.8 }}>
+                  {autoSentWasap 
+                    ? `The complete digital recipe for your ${prioridad} is on your phone.` 
+                    : `View your personalized recipes below.`}
+                </p>
              </div>
           </div>
           <button onClick={() => setShowDetails(!showDetails)} className="btn-secondary-premium">

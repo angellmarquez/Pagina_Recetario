@@ -308,3 +308,22 @@
 
 .btn-generate-main { background: var(--primary); color: var(--on-primary); box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3); }
 .btn-generate-main:hover { transform: translateY(-5px) scale(1.02); }
+.btn-secondary-premium {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary-premium:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: scale(1.05);
+}

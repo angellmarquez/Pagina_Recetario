@@ -22,6 +22,9 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   const [dashboardAbierto, setDashboardAbierto] = useState(false);
   const [fondoActivo, setFondoActivo] = useState('var(--bg-gradient)');
   const [notificaciones, setNotificaciones] = useState([]);
+  const [perfilSucio, setPerfilSucio] = useState(false);
+  const [seccionPendiente, setSeccionPendiente] = useState(null);
+  const [mostrarAlertaNavegacion, setMostrarAlertaNavegacion] = useState(false);
   
   const addNotification = (titulo, mensaje, tipo = 'info') => {
     setNotificaciones(prev => [{ titulo, mensaje, tipo, fecha: new Date() }, ...prev]);
@@ -95,6 +98,22 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     } catch (err) {}
   };
 
+  const navegarSeguro = (proximaSeccion) => {
+    if (perfilSucio && proximaSeccion !== seccionActiva) {
+      setSeccionPendiente(proximaSeccion);
+      setMostrarAlertaNavegacion(true);
+    } else {
+      setSeccionActiva(proximaSeccion);
+    }
+  };
+
+  const confirmarNavegacion = () => {
+    setPerfilSucio(false);
+    setSeccionActiva(seccionPendiente);
+    setMostrarAlertaNavegacion(false);
+    setSeccionPendiente(null);
+  };
+
   return (
     <div className="app-container" style={{ background: fondoActivo, minHeight: '100vh', transition: 'background 1.5s ease' }}>
       <div style={{ position: 'absolute', top: '20px', right: '40px', zIndex: 1000 }}>
@@ -104,7 +123,16 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
       </div>
 
       <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
-        <SidebarNavigation seccionActiva={seccionActiva} setSeccionActiva={setSeccionActiva} setPrompt={setPrompt} setRecetaActiva={setRecetaActiva} setRespuestaIA={setRespuestaIA} setFondoActivo={setFondoActivo} usuario={usuario} onRecomendar={sugerirRecomendacion} />
+        <SidebarNavigation 
+           seccionActiva={seccionActiva} 
+           setSeccionActiva={navegarSeguro} 
+           setPrompt={setPrompt} 
+           setRecetaActiva={setRecetaActiva} 
+           setRespuestaIA={setRespuestaIA} 
+           setFondoActivo={setFondoActivo} 
+           usuario={usuario} 
+           onRecomendar={sugerirRecomendacion} 
+        />
         <main style={{ flex: 1, padding: '40px 60px' }}>
           <div style={{ width: '100%', flex: 1, position: 'relative' }}>
             {['buscar', 'descubrir', 'nevera'].includes(seccionActiva) && !recetaActiva && !cargando && (
@@ -142,6 +170,48 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                   >
                     LO SIENTO, ABUELA
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* NAVIGATION WARNING MODAL (ABUELA) */}
+            {mostrarAlertaNavegacion && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                zIndex: 3000, display: 'flex', justifyContent: 'center', alignItems: 'center',
+                background: 'rgba(10, 15, 29, 0.9)', backdropFilter: 'blur(20px)',
+                animation: 'fadeIn 0.3s ease'
+              }}>
+                <div 
+                  className="glass-panel-premium" 
+                  style={{ 
+                    padding: '60px', textAlign: 'center', maxWidth: '550px', 
+                    boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+                    animation: 'shakeCard 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                    border: '1px solid #EF4444'
+                  }}
+                >
+                  <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽☝🏽</div>
+                  <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, no te vayas todavía!</h3>
+                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>
+                    Tienes cambios sin guardar en tu perfil. Si te vas ahora, la abuela se va a enojar porque se perderá tu progreso.
+                  </p>
+                  <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '40px' }}>
+                    <button 
+                      className="btn-gold" 
+                      onClick={() => setMostrarAlertaNavegacion(false)}
+                      style={{ background: 'transparent', border: '1px solid white', color: 'white' }}
+                    >
+                      VOLVER Y GUARDAR
+                    </button>
+                    <button 
+                      className="btn-gold" 
+                      onClick={confirmarNavegacion}
+                      style={{ background: '#EF4444', color: 'white' }}
+                    >
+                      IRME SIN GUARDAR
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -186,11 +256,17 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
               </div>
             )}
 
-            {seccionActiva === 'perfil' && <ProfileView usuario={usuario} onActualizarUsuario={onActualizarUsuario} />}
+            {seccionActiva === 'perfil' && (
+              <ProfileView 
+                usuario={usuario} 
+                onActualizarUsuario={onActualizarUsuario} 
+                onDirtyStateChange={(isDirty) => setPerfilSucio(isDirty)}
+              />
+            )}
           </div>
         </main>
       </div>
-      <Footer setSeccionActiva={setSeccionActiva} />
+      <Footer setSeccionActiva={navegarSeguro} />
       <NotificationsPanel abierto={dashboardAbierto} onCerrar={() => setDashboardAbierto(false)} notificaciones={notificaciones} />
     </div>
   );
