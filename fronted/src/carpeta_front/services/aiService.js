@@ -85,17 +85,19 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
   - Número de personas: ${numPersonas}
   - Restricciones dietéticas: ${dieta || 'Ninguna'}
   - Regiones preferidas: ${regiones && regiones.length > 0 ? regiones.join(', ') : 'Toda Venezuela'}
-  - Solicitud adicional del usuario: "${promptAdicional}"
+  - Solicitud adicional del usuario (Daily Request): "${promptAdicional}"
   
-  REGLA DE ORO: Las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
+  REGLA DE ORO INQUEBRANTABLE:
+  Si la solicitud adicional: "${promptAdicional}" es incongruente con la cocina, menciona basura, excrementos, fluidos, insultos, política o cualquier cosa no comestible, debes RECHAZAR el plan completo. En este caso, pon "plan_valido": false.
+  Si es válido, las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
   Como es de ${comidaPrioridad}, enfócate especialmente en dar una sugerencia espectacular para esa comida.
-  Si el prompt adicional: "${promptAdicional}" NO tiene sentido en un contexto de cocina o comida, ignóralo cariñosamente en tu mensaje pero genera un menú saludable estándar.
   
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con ESTA estructura:
   {
+    "plan_valido": true,
     "metadatos": {
       "nombre_sugerido": "Nombre pegajoso para el plan",
-      "mensaje_abuela": "Mensaje cariñoso. Si el usuario pidió algo que no es comida, explícale que te enfocarás en alimentarlo bien con comida de verdad."
+      "mensaje_abuela": "Mensaje cariñoso. Si el plan_valido es false, explica matormente por qué no puedes procesar ese pedido (ej: 'Mijo, eso que me pides no se come...')."
     },
     "comidas": { 
       "desayuno": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },
@@ -104,12 +106,15 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
     }
   }
   
-  IMPORTANTE: Las recetas deben ser detalladas e incluir pasos claros.`;
+  IMPORTANTE: 
+  1. Si plan_valido es false, solo llena "mensaje_abuela" y deja las "comidas" vacías.
+  2. Las recetas deben ser detalladas e incluir pasos claros.`;
 
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: "user", content: promptContextualizado }],
       model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
       response_format: { type: "json_object" }
     });
     return JSON.parse(chatCompletion.choices[0]?.message?.content || "{}");

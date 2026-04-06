@@ -126,7 +126,10 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
         nombre: usuario?.nombre || 'Gourmet', fechaActual: formatearFecha(fechaActual),
         horaActual: fechaActual.toLocaleTimeString(), comidaPrioridad: prioridad
       });
-      if (plan?.comidas) {
+      if (plan?.plan_valido === false) {
+        setPlanIA(null);
+        setErrorPlan(plan.metadatos?.mensaje_abuela || 'Petición inválida.');
+      } else if (plan?.comidas) {
         setPlanIA(plan); setSelectedMeal(prioridad);
         await enviarWhatsAppAuto(plan, prioridad);
       }
@@ -145,6 +148,47 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
   return (
     <div className="plan-semanal-container">
       <CinematicLoader visible={cargando} />
+
+      {/* REJECTION MODAL FOR PLAN */}
+      {errorPlan && !cargando && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          zIndex: 3000, display: 'flex', justifyContent: 'center', alignItems: 'center',
+          background: 'rgba(10, 15, 29, 0.85)', backdropFilter: 'blur(15px)',
+          animation: 'fadeIn 0.3s ease'
+        }} onClick={() => setErrorPlan('')}>
+          <div 
+            className="glass-panel-premium" 
+            style={{ 
+              padding: '60px', textAlign: 'center', maxWidth: '600px', 
+              boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              animation: 'shakeCard 0.5s cubic-bezier(.36,.07,.19,.97) both'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽</div>
+            <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, así no se puede!</h3>
+            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>{errorPlan}</p>
+            <button 
+              className="btn-gold" 
+              onClick={() => setErrorPlan('')}
+              style={{ marginTop: '40px', padding: '15px 50px', borderRadius: '100px', fontSize: '16px', fontWeight: '800' }}
+            >
+              ENTENDIDO, ABUELA
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes shakeCard {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+      `}</style>
+
       <header className="hero-header stagger-1">
         <div className="hero-text-content">
           <div className="hero-badge-premium">✨ MasterChef Daily Planner</div>
