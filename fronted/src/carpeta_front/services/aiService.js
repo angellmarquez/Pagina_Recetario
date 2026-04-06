@@ -18,7 +18,8 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
     El usuario está explorando el estado: **${pais}**.
     Su solicitud específica es: "${textoBase}".
     Tu tarea es sugerir una receta que sea 100% auténtica del estado **${pais}** y que se relacione con lo que pide el usuario.
-    REGLA DE ORO: Si el plato no es originario del estado **${pais}**, NO lo sugieras. Busca uno que sí lo sea.`;
+    REGLA DE ORO: Si el plato no es originario del estado **${pais}**, NO lo sugieras. Busca uno que sí lo sea.
+    MUY IMPORTANTE: La receta debe usar ingredientes típicos y representativos de ese estado. No solo menciones el nombre del plato, describe ingredientes y pasos reales y tradicionales de la región. Si el usuario pide un ingrediente típico del estado, asegúrate de que esté presente en la receta.`;
   } else if (origin === 'world-map') {
     basePrompt = `Eres VENIA, una abuela venezolana virtual muy culta y viajera, experta en gastronomía mundial.
     El usuario está explorando el país: **${pais}**.

@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+../backend/.env
+test_groq.cjs
 
 # Editor directories and files
 .vscode/*

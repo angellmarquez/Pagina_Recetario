@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-// Simplified mapping for country suggestions - could be expanded or fetched
+// Suggestions mappings
 const countrySuggestions = {
   'Mexico': ['Tacos al Pastor', 'Mole Poblano', 'Chiles en Nogada'],
   'Italy': ['Lasagna Tradicional', 'Risotto de Hongos', 'Pasta Carbonara'],
@@ -16,7 +16,6 @@ const countrySuggestions = {
   'India': ['Butter Chicken', 'Biryani de Cordero', 'Palak Paneer'],
 };
 
-// Venezuelan State Suggestions
 const stateSuggestions = {
   'Zulia': ['Patacón', 'Mandocas', 'Macarronada'],
   'Mérida': ['Pizca Andina', 'Arepa de Trigo', 'Pastelitos de Trucha'],
@@ -30,44 +29,34 @@ const stateSuggestions = {
 };
 
 const getRegionImage = (lugar, tipo) => {
-  if (tipo === 'region') {
-    // Venezuelan landscapes (conceptual)
-    return 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=1200&auto=format&fit=crop'; // Example: Salto Angel / Tepui conceptual
-  }
-
-  // Placeholder images for international regions
+  if (tipo === 'region') return 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?q=80&w=1600&auto=format&fit=crop';
   const images = {
-    'Mexico': 'https://images.unsplash.com/photo-1512813195386-6cf811ad3542?q=80&w=1200&auto=format&fit=crop',
-    'Italy': 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200&auto=format&fit=crop',
-    'Japan': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop',
-    'Spain': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?q=80&w=1200&auto=format&fit=crop',
-    'France': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop',
-    'Colombia': 'https://images.unsplash.com/photo-1583997051651-8255af853bc6?q=80&w=1200&auto=format&fit=crop',
+    'Mexico': 'https://images.unsplash.com/photo-1512813195386-6cf811ad3542?q=80&w=1600&auto=format&fit=crop',
+    'Italy': 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1600&auto=format&fit=crop',
+    'Japan': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1600&auto=format&fit=crop',
+    'Spain': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?q=80&w=1600&auto=format&fit=crop',
+    'France': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1600&auto=format&fit=crop',
+    'Colombia': 'https://images.unsplash.com/photo-1583997051651-8255af853bc6?q=80&w=1600&auto=format&fit=crop',
   };
-  return images[lugar] || 'https://images.unsplash.com/photo-1488459711626-d6df200c9977?q=80&w=1200&auto=format&fit=crop';
+  return images[lugar] || 'https://images.unsplash.com/photo-1488459711626-d6df200c9977?q=80&w=1600&auto=format&fit=crop';
 };
 
 const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarReceta, cargando, onVolver }) => {
-  
   const isVenezuelaState = tipoLugar === 'region';
-
   const suggestions = useMemo(() => {
-    if (isVenezuelaState) {
-      return stateSuggestions[pais] || ['Plato Principal Típico', 'Dulce Tradicional', 'Desayuno Local'];
-    }
-    return countrySuggestions[pais] || ['Plato Típico 1', 'Especialidad Local', 'Sabor Tradicional'];
+    if (isVenezuelaState) return stateSuggestions[pais] || ['Plato Principal', 'Postre Tradicional', 'Desayuno'];
+    return countrySuggestions[pais] || ['Especialidad Local', 'Sabor Tradicional', 'Receta Clásica'];
   }, [pais, isVenezuelaState]);
 
   const handleSearch = (term = null) => {
     const finalTerm = term || prompt || `Receta típica de ${pais}`;
-    // The MenuRecetario now handles the generic origin mapping in the aiService call
     generarReceta(finalTerm, tipoLugar);
   };
 
   return (
-    <div className="stagger-1" style={{ width: '100%', position: 'relative' }}>
+    <div className="stagger-1" style={{ width: '100%', position: 'relative', minHeight: '90vh', padding: '40px 0' }}>
       
-      {/* Dynamic Background */}
+      {/* Cinematic Immersive Background */}
       <div style={{
           position: 'fixed',
           top: 0, left: 0, width: '100%', height: '100%',
@@ -75,116 +64,169 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           zIndex: -1,
-          opacity: 0.2,
-          filter: 'blur(4px) saturate(1.5)',
+          opacity: 0.3,
+          filter: 'saturate(1.2) brightness(0.8)',
           transition: 'all 1.5s ease'
       }} />
+      <div style={{
+          position: 'fixed',
+          top: 0, left: 0, width: '100%', height: '100%',
+          background: 'linear-gradient(to bottom, transparent 0%, var(--surface-container-lowest) 90%)',
+          zIndex: -1,
+          pointerEvents: 'none'
+      }} />
 
-      {/* Hero Section */}
-      <div className="glass-panel-premium" style={{ 
-        padding: '60px', 
-        maxWidth: '900px', 
-        margin: '20px auto 40px auto',
-        border: isVenezuelaState ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid var(--primary-container)',
-        boxShadow: isVenezuelaState ? '0 20px 50px rgba(74, 222, 128, 0.1)' : '0 20px 50px rgba(245, 158, 11, 0.1)'
-      }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
         
-        <button 
-          onClick={onVolver}
-          style={{ 
-            background: 'none', 
-            border: 'none', 
-            color: isVenezuelaState ? '#4ade80' : 'var(--primary)', 
-            cursor: 'pointer', 
-            fontSize: '14px', 
-            fontWeight: 'bold',
+        {/* Navigation Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '80px' }}>
+          <button 
+            onClick={onVolver}
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              border: '1px solid rgba(255, 255, 255, 0.1)', 
+              color: 'white', 
+              padding: '10px 24px',
+              borderRadius: '100px',
+              fontSize: '13px',
+              fontWeight: '800',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              backdropFilter: 'blur(10px)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+          >
+            <span style={{ fontSize: '18px' }}>←</span> VOLVER
+          </button>
+
+          <div className="hero-badge-premium" style={{ 
+            margin: 0,
+            background: isVenezuelaState ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+            color: isVenezuelaState ? '#4ade80' : 'var(--primary)',
+            borderColor: isVenezuelaState ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'
+          }}>
+            {isVenezuelaState ? '🇻🇪 PATRIMONIO NACIONAL' : '🌍 EXPLORACIÓN GLOBAL'}
+          </div>
+        </div>
+
+        {/* REFINED CONTENT SECTION */}
+        <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+          <h1 style={{ 
+            fontSize: '64px', 
+            fontWeight: '900', 
+            margin: '0 0 20px 0', 
+            letterSpacing: '-2px', 
+            color: 'white',
+            lineHeight: '1.1'
+          }}>
+            Descubriendo <span style={{ color: isVenezuelaState ? '#22c55e' : 'var(--primary)' }}>{pais}</span>
+          </h1>
+          
+          <p style={{ 
+            fontSize: '20px', 
+            color: 'var(--text-secondary)', 
+            maxWidth: '800px', 
+            margin: '0 auto',
+            lineHeight: '1.6',
+            fontWeight: '500'
+          }}>
+            {isVenezuelaState 
+              ? `Explora la riqueza culinaria del estado ${pais}. Como buena abuela venezolana, te guiaré por sus sabores más auténticos.`
+              : `Viaja a través del paladar por la historia de ${pais}. Descubre los platos que definen su cultura y herencia.`}
+          </p>
+        </div>
+
+        {/* INTEGRATED SEARCH BAR */}
+        <div style={{ 
+          maxWidth: '850px', 
+          margin: '0 auto 60px auto',
+          position: 'relative'
+        }}>
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(40px)',
+            borderRadius: '100px',
+            padding: '10px 10px 10px 35px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            marginBottom: '30px'
+            gap: '20px',
+            boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
           }}>
-          <span>←</span> {isVenezuelaState ? 'VOLVER A REGIONES' : 'VOLVER AL MAPA'}
-        </button>
-
-        <div className="hero-badge-premium" style={{ 
-          marginBottom: '25px', 
-          background: isVenezuelaState ? 'rgba(74, 222, 128, 0.1)' : undefined,
-          color: isVenezuelaState ? '#4ade80' : undefined,
-          borderColor: isVenezuelaState ? 'rgba(74, 222, 128, 0.2)' : undefined
-        }}>
-          {isVenezuelaState ? '🇻🇪 PATRIMONIO NACIONAL' : '✨ EXPLORANDO EL MUNDO'}
+            <span style={{ fontSize: '24px' }}>🍳</span>
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !cargando) handleSearch(); }}
+              placeholder={`Busca un plato de ${pais}...`}
+              style={{ 
+                flex: 1, 
+                background: 'transparent', 
+                border: 'none', 
+                outline: 'none', 
+                color: 'white', 
+                fontSize: '18px', 
+                fontWeight: '500'
+              }}
+            />
+            <button 
+              className="btn-gold"
+              onClick={() => handleSearch()} 
+              disabled={cargando} 
+              style={{ 
+                padding: '14px 40px',
+                borderRadius: '100px',
+                fontSize: '15px',
+                fontWeight: '800',
+                background: isVenezuelaState ? '#22c55e' : undefined,
+                boxShadow: isVenezuelaState ? '0 10px 30px rgba(34, 197, 94, 0.3)' : undefined
+              }}>
+              {cargando ? '⌛...' : 'COCINAR'}
+            </button>
+          </div>
         </div>
 
-        <h1 style={{ fontSize: '64px', margin: '0 0 20px 0', fontWeight: '900', letterSpacing: '-2px', color: 'white' }}>
-          Sabores de <span style={{ color: isVenezuelaState ? '#4ade80' : 'var(--primary)', fontStyle: 'italic' }}>{pais}</span>
-        </h1>
-        
-        <p style={{ fontSize: '20px', color: 'var(--text-secondary)', marginBottom: '40px', maxWidth: '650px', lineHeight: '1.6' }}>
-          {isVenezuelaState 
-            ? `Bienvenido a nuestro hermoso estado ${pais}. Como buena abuela venezolana, conozco todos los secretos de nuestra tierra. ¿Qué platillo local quieres que preparemos hoy?`
-            : `Bienvenido a la cocina viajera. He recorrido ${pais} y estoy lista para enseñarte el secreto de su sazón. ¿Qué quieres cocinar hoy?`}
-        </p>
-
-        {/* Global Styled Search Input */}
-        <div className="glass-input-wrapper" style={{ padding: '10px 10px 10px 30px', background: 'rgba(5, 8, 18, 0.4)' }}>
-          <span style={{ fontSize: '24px' }}>🍳</span>
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !cargando) handleSearch(); }}
-            placeholder={`¿Qué quieres cocinar de ${pais}?`}
-            style={{ 
-              flex: 1, 
-              background: 'transparent', 
-              border: 'none', 
-              outline: 'none', 
-              color: 'white', 
-              fontSize: '20px', 
-              padding: '16px 0',
-              fontWeight: '500'
-            }}
-          />
-          <button 
-            className="btn-gold"
-            onClick={() => handleSearch()} 
-            disabled={cargando} 
-            style={{ 
-              padding: '16px 45px',
-              borderRadius: '16px',
-              fontSize: '18px',
-              background: isVenezuelaState ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : undefined,
-              boxShadow: isVenezuelaState ? '0 10px 30px rgba(34, 197, 94, 0.3)' : '0 10px 30px rgba(245, 158, 11, 0.3)'
-            }}>
-            {cargando ? '⌛ Cocinando...' : 'COOK'}
-          </button>
-        </div>
-
-        {/* Suggestions Grid */}
-        <div style={{ marginTop: '40px' }}>
-          <span style={{ 
-            fontSize: '12px', 
+        {/* REFINED SUGGESTIONS */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            fontSize: '11px', 
             color: 'rgba(255,255,255,0.4)', 
-            fontWeight: '900', 
+            fontWeight: '800', 
             textTransform: 'uppercase', 
             letterSpacing: '0.2em',
-            display: 'block',
             marginBottom: '20px'
-          }}>PLATOS RECOMENDADOS DEL CHEF:</span>
+          }}>PLATOS EMBLEMÁTICOS</div>
           
-          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {suggestions.map((item, idx) => (
               <button 
                 key={idx} 
-                className="suggested-tag-premium"
+                onClick={() => { setPrompt(item); handleSearch(item); }}
                 style={{ 
-                  padding: '12px 24px', 
+                  background: 'rgba(255, 255, 255, 0.03)', 
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  padding: '10px 24px',
+                  borderRadius: '100px',
                   fontSize: '14px',
-                  borderColor: isVenezuelaState ? 'rgba(74, 222, 128, 0.3)' : undefined
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
                 }}
-                onClick={() => {
-                  setPrompt(item);
-                  handleSearch(item);
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = isVenezuelaState ? '#22c55e' : 'var(--primary)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                 }}
               >
                 {item}
@@ -192,6 +234,7 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
             ))}
           </div>
         </div>
+
       </div>
 
     </div>
