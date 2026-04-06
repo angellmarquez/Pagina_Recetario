@@ -36,14 +36,49 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   };
 
   const sugerirRecomendacion = () => {
-    const momentos = ['algo reconfortante', 'un plato exótico', 'algo saludable', 'un festín tradicional'];
-    const random = momentos[Math.floor(Math.random() * momentos.length)];
+    const momentos = [
+      'un desayuno energético y creativo', 
+      'un almuerzo casero reconfortante con un toque gourmet', 
+      'una cena ligera, elegante y nutritiva', 
+      'un snack innovador para media tarde',
+      'un plato exótico para viajar con el paladar',
+      'algo saludable que se sienta como un capricho',
+      'un festín tradicional venezolano con técnicas modernas'
+    ];
+    const randomMoment = momentos[Math.floor(Math.random() * momentos.length)];
     const nombre = usuario?.nombre || 'amigo';
-    const dieta = Array.isArray(usuario?.preferencias_dieteticas) ? usuario.preferencias_dieteticas.map(p => p?.nombre || p).join(', ') : '';
-    let promptPersonalizado = `Sorprende a ${nombre} con un ${random}.`;
-    if (dieta) promptPersonalizado += ` Dieta: ${dieta}.`;
-    setSeccionActiva('buscar'); setPrompt(promptPersonalizado); generarReceta(promptPersonalizado);
+    
+    // Obtener etiquetas del usuario
+    const allTags = Array.isArray(usuario?.preferencias_dieteticas) 
+      ? usuario.preferencias_dieteticas.map(p => p?.nombre || p) 
+      : [];
+    
+    // Seleccionar subconjunto aleatorio (máx 3) para no saturar a la IA y dar variedad
+    const selectedTags = [...allTags]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3);
+      
+    const dietaStr = selectedTags.length > 0 ? selectedTags.join(', ') : '';
+
+    // Obtener títulos de recetas recientes para evitar repetición
+    const titulosEvitar = recentRecipes.map(r => r.titulo).slice(0, 5);
+
+    let promptPersonalizado = `Actúa como un Chef Personal de alta gama. Sorprende a ${nombre} con ${randomMoment}.`;
+    
+    if (dietaStr) {
+      promptPersonalizado += ` Prioriza estos gustos/dietas del perfil: ${dietaStr}.`;
+    }
+
+    if (titulosEvitar.length > 0) {
+      promptPersonalizado += ` IMPORTANTE: NO sugieras ninguna de estas recetas recientes: ${titulosEvitar.join(', ')}.`;
+    }
+
+    // Cambiar a vista de búsqueda y ejecutar
+    setSeccionActiva('buscar'); 
+    setPrompt(promptPersonalizado); 
+    generarReceta(promptPersonalizado);
   };
+
 
   const [guardando, setGuardando] = useState(false);
   const [mensajeGuardado, setMensajeGuardado] = useState('');
