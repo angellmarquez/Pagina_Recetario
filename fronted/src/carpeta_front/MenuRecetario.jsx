@@ -10,6 +10,7 @@ import ProfileView from './views/ProfileView';
 import CountryExplorationView from './views/CountryExplorationView';
 import Footer from './components/Footer';
 import RecipeImage from './components/RecipeImage';
+import CinematicLoader from './components/CinematicLoader';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
 import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta } from './services/apiService';
 
@@ -113,7 +114,48 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                 </div>
             )}
             {recetaActiva && !cargando && <RecipeDetailView recetaActiva={recetaActiva} guardarReceta={guardarReceta} guardando={guardando} mensajeGuardado={mensajeGuardado} setRecetaActiva={setRecetaActiva} setPrompt={setPrompt} setRespuestaIA={setRespuestaIA} />}
-            {cargando && <div className="glass-card loading-box"><div className="loader"></div><p>Cocinando...</p></div>}
+            
+            {/* Display AI Message when validation fails or for feedback */}
+            {respuestaIA && !recetaActiva && !cargando && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center',
+                background: 'rgba(10, 15, 29, 0.8)', backdropFilter: 'blur(10px)',
+                animation: 'fadeIn 0.3s ease'
+              }} onClick={() => setRespuestaIA('')}>
+                <div 
+                  className="glass-panel-premium" 
+                  style={{ 
+                    padding: '60px', textAlign: 'center', maxWidth: '600px', 
+                    boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+                    animation: 'shakeCard 0.5s cubic-bezier(.36,.07,.19,.97) both'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽</div>
+                  <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, ten cuidado!</h3>
+                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>{respuestaIA}</p>
+                  <button 
+                    className="btn-gold" 
+                    onClick={() => setRespuestaIA('')}
+                    style={{ marginTop: '40px', padding: '15px 50px', borderRadius: '100px', fontSize: '16px', fontWeight: '800' }}
+                  >
+                    LO SIENTO, ABUELA
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <style>{`
+              @keyframes shakeCard {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+              }
+            `}</style>
+
+            <CinematicLoader visible={cargando} />
             {seccionActiva === 'regiones' && !recetaActiva && !cargando && <RegionesView setPrompt={setPrompt} generarReceta={generarReceta} setSeccionActiva={setSeccionActiva} setPaisSeleccionado={setPaisSeleccionado} />}
             {seccionActiva === 'explorar_pais' && !recetaActiva && !cargando && <CountryExplorationView pais={paisSeleccionado?.nombre || paisSeleccionado} tipoLugar={paisSeleccionado?.tipo || 'world-map'} prompt={prompt} setPrompt={setPrompt} generarReceta={generarReceta} cargando={cargando} onVolver={() => setSeccionActiva('regiones')} />}
             {seccionActiva === 'plan' && !recetaActiva && !cargando && <PlanSemanalView usuario={usuario} addNotification={addNotification} onActualizarUsuario={onActualizarUsuario} />}

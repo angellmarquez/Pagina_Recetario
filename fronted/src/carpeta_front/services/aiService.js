@@ -11,56 +11,53 @@ export const generarRecetaIA = async ({ textoBase, origin, seccionActiva, pais }
 
   if (seccionActiva === 'nevera') {
     basePrompt = `Eres VENIA, una abuela venezolana experta cocinera. El usuario dice tener estos ingredientes: "${textoBase}". 
-    REGLA DE ORO INQUEBRANTABLE: Analiza ESTRICTAMENTE el texto. Si el texto menciona CUALQUIER COSA que no sea un alimento real y comestible (objetos, personas, tecnología, insultos, bromas), es OBLIGATORIO que rechaces la consulta. ¡NO inventes recetas mágicas con objetos! Si no son ingredientes reales de cocina, debes fallar la validación.
-    Si son verdaderos alimentos, sugiérele una receta venezolana que los aproveche.`;
+    REGLA DE ORO INQUEBRANTABLE: Analiza ESTRICTAMENTE el texto. Si el texto menciona CUALQUIER COSA que no sea un alimento real y comestible (objetos, personas, tecnología, insultos, bromas, política, excrementos, fluidos corporales, basura, animales vivos), es OBLIGATORIO que rechaces la consulta. ¡NO inventes recetas mágicas con cosas que no se comen! Si no son ingredientes reales de cocina o platos de comida auténticos, debes poner "receta_valida": false en el JSON.
+    Si son alimentos de verdad, sugiérele una receta venezolana deliciosa que los aproveche.`;
   } else if (origin === 'region') {
-    basePrompt = `Eres VENIA, una abuela venezolana virtual experta en historia y gastronomía tradicional de Venezuela. 
-    El usuario está explorando el estado: **${pais}**.
-    Su solicitud específica es: "${textoBase}".
-    Tu tarea es sugerir una receta que sea 100% auténtica del estado **${pais}** y que se relacione con lo que pide el usuario.
-    REGLA DE ORO: Si el plato no es originario del estado **${pais}**, NO lo sugieras. Busca uno que sí lo sea.
-    MUY IMPORTANTE: La receta debe usar ingredientes típicos y representativos de ese estado. No solo menciones el nombre del plato, describe ingredientes y pasos reales y tradicionales de la región. Si el usuario pide un ingrediente típico del estado, asegúrate de que esté presente en la receta.`;
+    basePrompt = `Eres VENIA, una abuela venezolana virtual experta en historia y gastronomía de Venezuela. 
+    El usuario explora el estado: **${pais}** y pide: "${textoBase}".
+    REGLA DE ORO: Si la solicitud NO trata sobre comida real del estado **${pais}**, o si pide algo que no es comestible (basura, fluidos, objetos), pon "receta_valida": false en el JSON y explica cariñosamente que solo hablas de comida venezolana. 
+    Si es válido, sugiere una receta auténtica de **${pais}**, describiendo ingredientes y pasos tradicionales.`;
   } else if (origin === 'world-map') {
-    basePrompt = `Eres VENIA, una abuela venezolana virtual muy culta y viajera, experta en gastronomía mundial.
-    El usuario está explorando el país: **${pais}**.
-    Su solicitud específica es: "${textoBase}".
-    Tu tarea es sugerir una receta que sea 100% auténtica de **${pais}** y que se relacione con lo que pide el usuario (si pide un ingrediente, úsalo en un plato típico de allí; si pide un plato, dáselo).
-    REGLA DE ORO: Si el plato no es originario de **${pais}**, NO lo sugieras. Busca uno que sí lo sea.`;
+    basePrompt = `Eres VENIA, una abuela venezolana muy culta y viajera.
+    El usuario explora el país: **${pais}** y pide: "${textoBase}".
+    REGLA DE ORO: Si la solicitud NO trata sobre comida real o platos típicos de **${pais}**, o si es algo no comestible, pon "receta_valida": false en el JSON.
+    Si es válido, sugiere una receta 100% auténtica de **${pais}** que se relacione con lo que pide el usuario.`;
   } else {
-    basePrompt = `Eres VENIA, una abuela venezolana virtual y experta cocinera de comida típica de Venezuela. 
-    Alguien te ha pedido: "${textoBase}".
-    REGLA DE ORO INQUEBRANTABLE: Si el usuario pide cualquier cosa ajena a platos de comida reales, ingredientes o recetas, es OBLIGATORIO que rechaces la consulta. ¡NO generes recetas de cosas que no se comen!`;
+    basePrompt = `Eres VENIA, abuela venezolana y experta cocinera. 
+    Alguien pide: "${textoBase}".
+    REGLA DE ORO: Si el pedido NO es sobre comida real, ingredientes o recetas (objetos, insultos, basura, excrementos), pon "receta_valida": false en el JSON. ¡No cocino cosas que no se comen, mijo!`;
   }
 
   const promptContextualizado = `${basePrompt}
-  Responde de forma muy cariñosa, dándole la receta detallada.
+  Responde de forma muy cariñosa.
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido.
   
   El JSON debe tener EXACTAMENTE esta estructura:
   {
-    "titulo": "Nombre del plato (ej: Arepa Pelúa)",
-    "historia": "Una breve introducción cariñosa de la abuela sobre este plato.",
+    "receta_valida": true,
+    "titulo": "Nombre del plato o Título de rechazo",
+    "historia": "Introducción cariñosa o explicación detallada de por qué NO puedes cocinar eso si receta_valida es false (ej: 'Mijo, eso no me parece comida...').",
     "porciones": 4,
     "tiempo": "45 min",
     "dificultad": "Media",
     "calorias": "320 kcal",
-    "ingredientes": ["3 huevos", "2 tazas de harina..."],
-    "pasos": ["Enciende la wafflera...", "Agrega la harina..."],
-    "recomendaciones": ["Nombre de plato 1", "Nombre de plato 2", "Nombre de plato 3"],
-    "tags": ["Desayuno", "Tradicional", "Sin Gluten"],
-    "consejo_chef": "Para que la arepa quede bien crocantica, agrégale un chorrito de aceite a la masa antes de armarla."
+    "ingredientes": ["..."],
+    "pasos": ["..."],
+    "recomendaciones": ["Plato 1", "Plato 2", "Plato 3"],
+    "tags": ["Tag1", "Tag2"],
+    "consejo_chef": "Un secreto de abuela."
   }
   
-  IMPORTANTE:
-  1. Si la solicitud NO ES 100% SOBRE COMIDA REAL, pon OBLIGATORIAMENTE "receta_valida": false en el JSON y llena "historia" explicando que solo sabes de cocina.
-  2. Identifica el ingrediente principal y sugiere 3 platos venezolanos exactos en "recomendaciones".
-  3. El "titulo" debe ser el NOMBRE OFICIAL Y REAL del plato.`;
+  IMPORTANTE: 
+  1. Si receta_valida es false, el campo "historia" DEBE contener tu rechazo cariñoso y el resto de campos deben ser strings vacíos o ceros.
+  2. Si es válido, identifica el ingrediente principal y sugiere 3 platos venezolanos exactos en "recomendaciones".`;
 
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: "user", content: promptContextualizado }],
       model: "llama-3.3-70b-versatile",
-      temperature: 1.2,
+      temperature: 0.7,
       response_format: { type: "json_object" },
     });
 
@@ -92,12 +89,13 @@ export const generarPlanIA = async ({ promptAdicional, dieta, regiones, numPerso
   
   REGLA DE ORO: Las recetas deben ser tradicionales venezolanas, nutritivas y perfectamente adaptadas a la dieta "${dieta}". 
   Como es de ${comidaPrioridad}, enfócate especialmente en dar una sugerencia espectacular para esa comida.
+  Si el prompt adicional: "${promptAdicional}" NO tiene sentido en un contexto de cocina o comida, ignóralo cariñosamente en tu mensaje pero genera un menú saludable estándar.
   
   DEBES responder ÚNICAMENTE en formato json (objeto JSON) válido con ESTA estructura:
   {
     "metadatos": {
-      "nombre_sugerido": "Nombre pegajoso para el plan (ej: Menú de Hoy)",
-      "mensaje_abuela": "Un mensaje dándole los buenos días/tardes/noches dependiendo de la hora actual y hablando sobre el menú."
+      "nombre_sugerido": "Nombre pegajoso para el plan",
+      "mensaje_abuela": "Mensaje cariñoso. Si el usuario pidió algo que no es comida, explícale que te enfocarás en alimentarlo bien con comida de verdad."
     },
     "comidas": { 
       "desayuno": { "nombre": "...", "ingredientes": ["..."], "pasos": ["..."] },

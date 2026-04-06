@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { generarPlanIA } from '../services/aiService';
 import { apiGuardarReceta } from '../services/apiService';
+import CinematicLoader from '../components/CinematicLoader';
 import './PlanSemanal.css';
 
 const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
@@ -143,6 +144,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario }) => {
 
   return (
     <div className="plan-semanal-container">
+      <CinematicLoader visible={cargando} />
       <header className="hero-header stagger-1">
         <div className="hero-text-content">
           <div className="hero-badge-premium">✨ MasterChef Daily Planner</div>
