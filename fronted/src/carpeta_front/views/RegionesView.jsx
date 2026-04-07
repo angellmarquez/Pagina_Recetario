@@ -67,11 +67,13 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
           borderRadius: '50px',
           position: 'relative',
           boxShadow: '0 30px 80px rgba(30, 58, 95, 0.08)',
-          overflow: 'hidden'
+          overflow: 'visible'
         }}>
-          {/* Decorative blobs for warmth */}
-          <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,58,95,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          {/* Background wrapper for decorative blobs to keep them clipped while allowing tooltips to overflow */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: '50px', pointerEvents: 'none', zIndex: 0 }}>
+            <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.08) 0%, transparent 70%)' }} />
+            <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,58,95,0.05) 0%, transparent 70%)' }} />
+          </div>
           <div className="map-container-premium">
             <World 
               onSelect={handleCountrySelect}
@@ -119,9 +121,12 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
           borderRadius: '50px',
           position: 'relative',
           boxShadow: '0 30px 80px rgba(46, 125, 94, 0.08)',
-          overflow: 'hidden'
+          overflow: 'visible'
         }}>
-          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          {/* Background wrapper for decorative blobs */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: '50px', pointerEvents: 'none', zIndex: 0 }}>
+            <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.1) 0%, transparent 70%)' }} />
+          </div>
           <div className="map-container-premium">
             <Venezuela 
               onSelect={handleStateSelect}
@@ -150,6 +155,31 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
       )}
 
       <style>{`
+        /* Ajuste global para tooltips de mapas */
+        .map-tooltip, .react-map-hint, .map-hint {
+          position: absolute !important;
+          z-index: 100000 !important;
+          pointer-events: none !important;
+          background: #1e3a5f !important;
+          color: #ffffff !important;
+          padding: 8px 16px !important;
+          border-radius: 12px !important;
+          font-weight: 700 !important;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+          transform: translate(-50%, -120%) !important; /* Justo encima del cursor */
+          white-space: nowrap !important;
+          visibility: visible !important;
+          display: block !important;
+          opacity: 1 !important;
+        }
+        @media (max-width: 900px) {
+          .map-tooltip, .react-map-hint, .map-hint {
+            max-width: 140px;
+            font-size: 13px;
+            white-space: normal !important;
+            transform: translate(-50%, -130%) !important;
+          }
+        }
         @keyframes bounce {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-15px) scale(1.1); }
