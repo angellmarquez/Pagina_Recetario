@@ -57,10 +57,28 @@ Las siguientes imágenes muestran ejemplos de las funcionalidades:
   - Axios/Fetch: Comunicación con la API.
   - Vite: Herramienta de build y desarrollo.
 
-## Seguridad de Datos
-- Todas las contraseñas se almacenan cifradas.
-- Las sesiones se gestionan con tokens seguros.
-- La comunicación entre frontend y backend debe realizarse siempre sobre HTTPS.
+
+## Bot de WhatsApp (bot_whatsapp.js)
+El sistema cuenta con un bot de WhatsApp que permite enviar notificaciones o mensajes automáticos a los usuarios. El bot utiliza la librería `whatsapp-web.js` y se autentica mediante un código QR escaneado desde la cuenta de WhatsApp configurada.
+
+- El bot se inicializa y espera a estar listo antes de enviar mensajes.
+- Los números de teléfono se limpian y formatean automáticamente para cumplir con el formato internacional requerido por WhatsApp.
+- El bot puede ser utilizado para enviar recordatorios, confirmaciones u otras notificaciones relevantes a los usuarios.
+
+**Funcionamiento básico:**
+1. Al iniciar el bot, se muestra un código QR en consola para vincular la sesión de WhatsApp.
+2. Una vez conectado, el bot puede enviar mensajes a cualquier número válido usando la función `enviarMensajeWasap`.
+3. El bot maneja reconexiones y errores de autenticación automáticamente.
+
+## Almacenamiento Seguro en la Base de Datos
+Todos los datos sensibles de los usuarios (nombre, email, teléfono, preferencias) se almacenan en la base de datos de forma cifrada usando algoritmos de encriptación personalizados. Las contraseñas se almacenan usando hashing seguro (`bcrypt` con salt).
+
+- **Encriptación:** Los datos personales se cifran antes de guardarse, y se desencriptan solo cuando es necesario para autenticación o visualización.
+- **Hashing de contraseñas:** Las contraseñas nunca se almacenan en texto plano, sino como hashes seguros.
+- **Validaciones:** Se realizan validaciones estrictas de formato y longitud para todos los campos.
+- **Recuperación de cuenta:** Los códigos de recuperación también se almacenan hasheados y nunca en texto plano.
+
+Esto garantiza que, incluso si la base de datos es comprometida, los datos de los usuarios no sean legibles ni reutilizables.
 
 ## Ejecución
 1. Instalar dependencias en backend y frontend (`npm install`).
