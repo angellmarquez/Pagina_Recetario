@@ -24,10 +24,18 @@ La comunicación entre el backend y el frontend se realiza mediante API REST sob
 ## Ejemplo de Imágenes de la Aplicación
 
 Las siguientes imágenes muestran ejemplos de las funcionalidades:
-- `assets/app_screenshots/landing.png`: Pantalla de inicio.
-- `assets/app_screenshots/buscar.png`: Búsqueda de recetas.
-- `assets/app_screenshots/descubrir.png`: Descubrimiento de recetas por región.
-- `assets/app_screenshots/perfil.png`: Vista de perfil de usuario.
+
+![Pantalla de inicio](fronted/src/assets/app_screenshots/landing.png)
+*Pantalla de inicio*
+
+![Búsqueda de recetas](fronted/src/assets/app_screenshots/buscar.png)
+*Búsqueda de recetas*
+
+![Descubrimiento de recetas por región](fronted/src/assets/app_screenshots/descubrir.png)
+*Descubrimiento de recetas por región*
+
+![Vista de perfil de usuario](fronted/src/assets/app_screenshots/perfil.png)
+*Vista de perfil de usuario*
 
 ## Funcionalidades Principales
 - Registro y login de usuarios.
