@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import '../carpeta_login/Login.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 const RecuperarPassword = ({ irALogin }) => {
-  const [paso, setPaso] = useState(1); // 1: Email, 2: Código, 3: Nueva Password
+  const [paso, setPaso] = useState(1);
   const [email, setEmail] = useState('');
   const [codigo, setCodigo] = useState('');
   const [nuevaPassword, setNuevaPassword] = useState('');
@@ -16,14 +18,14 @@ const RecuperarPassword = ({ irALogin }) => {
     
     setCargando(true);
     try {
-      const resp = await fetch('http://localhost:3000/api/recuperar/solicitar', {
+      const resp = await fetch(`${API_BASE_URL}/recuperar/solicitar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
       const data = await resp.json();
       if (data.success) {
-        setMensaje({ texto: '¡Código enviado! Revisa tu bandeja de entrada mijo.', tipo: 'exito' });
+        setMensaje({ texto: data.mensaje || '¡Si el correo existe, recibirás un código!', tipo: 'exito' });
         setPaso(2);
       } else {
         setMensaje({ texto: data.mensaje, tipo: 'error' });
@@ -42,7 +44,7 @@ const RecuperarPassword = ({ irALogin }) => {
 
     setCargando(true);
     try {
-      const resp = await fetch('http://localhost:3000/api/recuperar/verificar', {
+      const resp = await fetch(`${API_BASE_URL}/recuperar/verificar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, codigo })
@@ -68,7 +70,7 @@ const RecuperarPassword = ({ irALogin }) => {
 
     setCargando(true);
     try {
-      const resp = await fetch('http://localhost:3000/api/recuperar/restablecer', {
+      const resp = await fetch(`${API_BASE_URL}/recuperar/restablecer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, codigo, nuevaPassword })
@@ -92,7 +94,7 @@ const RecuperarPassword = ({ irALogin }) => {
       <div className="login-card-container">
         <div className="login-card-bg"></div>
         <div className="login-card-content">
-          <h1 className="login-title">VEN<span style={{ color: 'white' }}>IA</span></h1>
+          <h1 className="login-title">VEN<span style={{ color: 'var(--text-primary)' }}>IA</span></h1>
           <p className="login-subtitle">Recuperación Segura 🇻🇪</p>
 
           <div style={{ marginBottom: '20px', textAlign: 'center' }}>

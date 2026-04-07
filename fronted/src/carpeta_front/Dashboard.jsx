@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+function getAuthHeaders() {
+    const token = localStorage.getItem('venia_token');
+    return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+}
+
 const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, onVerPlanDetallado }) => {
   const [recetasGuardadas, setRecetasGuardadas] = useState([]);
   const [listaPlanes, setListaPlanes] = useState([]);
@@ -9,7 +15,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
   React.useEffect(() => {
     if (abierto && usuario?.id_usuario) {
       // Cargar recetas
-      fetch(`http://localhost:3000/api/recetas/usuario/${usuario.id_usuario}`)
+      fetch(`${API_BASE_URL}/recetas/usuario/${usuario.id_usuario}`, { headers: getAuthHeaders() })
         .then(res => res.json())
         .then(data => {
           if (data.success) setRecetasGuardadas(data.recetas);
@@ -24,7 +30,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
     if (!usuario?.id_usuario) return;
     setCargandoLista(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/plan-semanal/usuario/${usuario.id_usuario}`);
+      const res = await fetch(`${API_BASE_URL}/plan-semanal/usuario/${usuario.id_usuario}`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setListaPlanes(data.planes);
     } catch (err) {
@@ -37,8 +43,9 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
   const eliminarReceta = async (id_receta) => {
     if (!usuario?.id_usuario) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/recetas/eliminar/${usuario.id_usuario}/${id_receta}`, {
-        method: 'DELETE'
+      const res = await fetch(`${API_BASE_URL}/recetas/eliminar/${usuario.id_usuario}/${id_receta}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -52,8 +59,9 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
   const eliminarPlan = async (id_plan) => {
     if (!window.confirm('¿Seguro que quieres borrar este plan, mijo?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/plan-semanal/${id_plan}`, {
-        method: 'DELETE'
+      const res = await fetch(`${API_BASE_URL}/plan-semanal/${id_plan}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -66,7 +74,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
 
   const verDetallePlan = async (id_plan) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/plan-semanal/detalle/${id_plan}`);
+      const res = await fetch(`${API_BASE_URL}/plan-semanal/detalle/${id_plan}`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         onVerPlanDetallado(data.plan);
@@ -87,22 +95,22 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
       
       <div 
         style={{
-          width: '420px', height: '100%', background: 'var(--surface-container)',
+          width: '420px', height: '100%', background: '#ffffff',
           backdropFilter: 'blur(30px)', borderLeft: '1px solid var(--outline)',
           padding: '50px 40px', display: 'flex', flexDirection: 'column',
-          boxShadow: '-20px 0 50px rgba(0,0,0,0.5)', overflowY: 'auto'
+          boxShadow: '-20px 0 50px rgba(30,58,95,0.08)', overflowY: 'auto'
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h2 style={{ color: 'white', margin: 0, fontSize: '28px', fontWeight: '900', letterSpacing: '-1px' }}>Mi Cuaderno</h2>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '28px', fontWeight: '900', letterSpacing: '-1px' }}>Mi Cuaderno</h2>
             <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Recetas y planes guardados</p>
           </div>
-          <button onClick={onCerrar} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <button onClick={onCerrar} style={{ background: 'rgba(0,0,0,0.03)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
-        <nav style={{ display: 'flex', gap: '8px', marginBottom: '40px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '16px' }}>
+        <nav style={{ display: 'flex', gap: '8px', marginBottom: '40px', background: '#f3ede4', padding: '6px', borderRadius: '16px' }}>
           <button
             onClick={() => setSeccionActiva('recetas')}
             style={{
@@ -139,7 +147,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
                       onClick={() => onSeleccionarReceta(rec)}
                       className="receta-card-interactive"
                       style={{ 
-                        background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '20px', 
+                        background: '#f9f6f1', padding: '20px', borderRadius: '20px', 
                         border: '1px solid var(--outline-variant)', cursor: 'pointer', transition: 'all 0.3s'
                       }}
                     >
@@ -163,7 +171,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
           {seccionActiva === 'planes' && (
             <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
               {cargandoLista ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}><div className="spinner" style={{ width: '30px', height: '30px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }}></div></div>
+                <div style={{ textAlign: 'center', padding: '40px' }}><div className="spinner" style={{ width: '30px', height: '30px', border: '3px solid rgba(0,0,0,0.05)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }}></div></div>
               ) : listaPlanes.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
                   <div style={{ fontSize: '40px', marginBottom: '20px', opacity: 0.3 }}>📅</div>
@@ -177,7 +185,7 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
                       className="plan-card-mini"
                       onClick={() => verDetallePlan(plan.id_plan)}
                       style={{ 
-                        background: 'rgba(255,255,255,0.02)', padding: '18px 20px', borderRadius: '20px', 
+                        background: '#f9f6f1', padding: '18px 20px', borderRadius: '20px', 
                         border: '1px solid var(--outline-variant)', cursor: 'pointer', display: 'flex',
                         justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s'
                       }}
@@ -216,8 +224,8 @@ const Dashboard = ({ abierto, onCerrar, usuario, onLogout, onSeleccionarReceta, 
         @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
         .spinner { transform-origin: center; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .receta-card-interactive:hover { background: rgba(245, 158, 11, 0.08) !important; border-color: rgba(245, 158, 11, 0.3) !important; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .plan-card-mini:hover { background: rgba(245, 158, 11, 0.08) !important; border-color: rgba(245, 158, 11, 0.2) !important; transform: translateX(8px); }
+        .receta-card-interactive:hover { background: rgba(46, 125, 94, 0.08) !important; border-color: rgba(46, 125, 94, 0.3) !important; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .plan-card-mini:hover { background: rgba(46, 125, 94, 0.08) !important; border-color: rgba(46, 125, 94, 0.2) !important; transform: translateX(8px); }
       `}</style>
     </div>
   );

@@ -1,48 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Manrope:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Premium Design System: VenIA Alchemy v2 */
-  
-  /* Color Palette - Midnight & Gold */
-  --surface: #0a0f1d;
-  --surface-bright: #161e31;
-  --surface-container: #0f172a;
-  --surface-container-high: #1e293b;
-  --surface-container-lowest: #050812;
-  
-  --primary: #f59e0b; /* Amber/Gold */
-  --primary-bright: #fbbf24;
-  --primary-container: rgba(245, 158, 11, 0.1);
-  --on-primary: #0a0f1d;
-  
-  --secondary: #94a3b8;
-  --secondary-container: rgba(148, 163, 184, 0.1);
-  
-  --outline: rgba(255, 255, 255, 0.1);
-  --outline-variant: rgba(255, 255, 255, 0.05);
-  
-  --error: #ff716c;
-  --on-error: #490006;
+  /* ============================================
+   * PALETA VICHY — VenIA Recetario v4
+   * Inspirada en la elegancia francesa Vichy:
+   * Blanco crema, azul navy, verde salvia, rojo Vichy
+   * ============================================ */
 
-  /* Text Colors */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-gold: #f59e0b;
+  /* Superficies */
+  --surface: #f9f6f1;                 /* Crema cálido */
+  --surface-bright: #ffffff;          /* Blanco puro */
+  --surface-container: #ffffff;
+  --surface-container-high: #f3ede4;  /* Beige muy suave */
+  --surface-container-lowest: #ffffff;
 
-  /* Background Gradients */
-  --bg-gradient: radial-gradient(circle at 0% 0%, #1e293b 0%, #0a0f1d 50%, #050812 100%);
-  
-  /* Glassmorphism */
-  --glass-bg: rgba(15, 23, 42, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08); 
-  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  /* Color primario — Verde salvia Vichy */
+  --primary: #2e7d5e;                 /* Verde sage profundo */
+  --primary-bright: #3a9e77;          /* Verde sage brillante */
+  --primary-container: rgba(46, 125, 94, 0.1);
+  --on-primary: #ffffff;
 
-  /* Typography */
+  /* Color secundario — Navy Vichy */
+  --secondary: #1e3a5f;               /* Azul navy Vichy */
+  --secondary-container: rgba(30, 58, 95, 0.08);
+
+  /* Bordes */
+  --outline: rgba(30, 58, 95, 0.12);
+  --outline-variant: rgba(30, 58, 95, 0.06);
+
+  /* Error — Rojo Vichy suave */
+  --error: #b5341f;
+  --on-error: #ffffff;
+
+  /* ── Texto ── */
+  --text-primary: #1e3a5f;            /* Navy oscuro — alto contraste */
+  --text-secondary: #3d5a80;          /* Navy medio */
+  --text-muted: #7a94ae;              /* Gris azulado */
+  --text-gold: #2e7d5e;               /* Alias verde para compatibilidad */
+
+  /* Degradado de fondo */
+  --bg-gradient: radial-gradient(circle at 0% 0%, #ffffff 0%, #f9f6f1 60%, #f3ede4 100%);
+
+  /* Glassmorphism claro (recipientes sobre superficie clara) */
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(30, 58, 95, 0.15);
+  --glass-shadow: 0 20px 60px rgba(30, 58, 95, 0.12);
+
+  /* Tipografía */
   --font-display: 'Epilogue', sans-serif;
   --font-body: 'Manrope', sans-serif;
 
-  /* Custom Transitions */
+  /* Transiciones */
   --transition-smooth: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -50,13 +58,29 @@
 body {
   margin: 0;
   padding: 0;
-  background: var(--surface) var(--bg-gradient);
+  background-color: #f9f6f1;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(46, 125, 94, 0.1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, rgba(30, 58, 95, 0.05) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, rgba(46, 125, 94, 0.1) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(30, 58, 95, 0.05) 0, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(46, 125, 94, 0.1) 0, transparent 50%);
+  background-size: 200% 200%;
+  animation: ambientMove 25s infinite alternate ease-in-out;
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   font-family: var(--font-body);
   line-height: 1.6;
+}
+
+@keyframes ambientMove {
+  0% { background-position: 0% 0%; }
+  25% { background-position: 100% 0%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -81,15 +105,15 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
-  border-radius: 24px;
+  border-radius: 32px;
   box-shadow: var(--glass-shadow);
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(245, 158, 11, 0.3);
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.05);
+  border-color: rgba(46, 125, 94, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(30, 58, 95, 0.1), 0 0 0 1px rgba(46, 125, 94, 0.08);
 }
 
 button {
@@ -102,12 +126,12 @@ button:active {
 
 input:focus, textarea:focus {
   border-color: var(--primary) !important;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 20px rgba(46, 125, 94, 0.15);
 }
 
 .generate-btn-premium:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 15px 40px rgba(245, 158, 11, 0.5);
+  box-shadow: 0 15px 40px rgba(46, 125, 94, 0.3);
 }
 
 .generate-btn-premium:active {
@@ -135,13 +159,13 @@ input:focus, textarea:focus {
   font-weight: 800;
   font-size: 16px;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 10px 20px rgba(46, 125, 94, 0.2);
 }
 
 .btn-gold:hover {
   background: var(--primary-bright);
   transform: translateY(-2px);
-  box-shadow: 0 15px 30px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 15px 30px rgba(46, 125, 94, 0.3);
 }
 
 /* Badge Styles */
@@ -154,9 +178,9 @@ input:focus, textarea:focus {
   text-transform: uppercase;
 }
 
-.badge-signature { background: rgba(245, 158, 11, 0.2); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-heritage { background: rgba(148, 163, 184, 0.2); color: var(--secondary); border: 1px solid rgba(148, 163, 184, 0.3); }
-.badge-popular { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-signature { background: rgba(46, 125, 94, 0.12); color: var(--primary); border: 1px solid rgba(46, 125, 94, 0.25); }
+.badge-heritage { background: rgba(30, 58, 95, 0.08); color: var(--secondary); border: 1px solid rgba(30, 58, 95, 0.15); }
+.badge-popular { background: rgba(181, 52, 31, 0.08); color: var(--error); border: 1px solid rgba(181, 52, 31, 0.2); }
 
 /* Hero Typography */
 .hero-title {
@@ -181,28 +205,27 @@ input:focus, textarea:focus {
 
 /* Recipe Card Specifics */
 .recipe-card-premium {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid rgba(30, 58, 95, 0.06);
   border-radius: 28px;
   overflow: hidden;
   transition: var(--transition-smooth);
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.05);
 }
 
 .recipe-card-premium:hover {
   transform: translateY(-10px);
-  border-color: rgba(245, 158, 11, 0.3);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  border-color: rgba(46, 125, 94, 0.3);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
 }
 
 /* Premium Fridge Search Components */
 .glass-panel-premium {
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 40px 100px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: #ffffff;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 40px rgba(30, 58, 95, 0.08);
   border-radius: 40px;
   padding: 60px;
   position: relative;
@@ -215,38 +238,36 @@ input:focus, textarea:focus {
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent);
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-bright), var(--primary));
+  opacity: 0.4;
 }
 
 .glass-input-wrapper {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 24px;
   padding: 8px 8px 8px 24px;
   display: flex;
   align-items: center;
   gap: 16px;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .glass-input-wrapper:focus-within {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: 
-    0 0 40px rgba(245, 158, 11, 0.15),
-    inset 0 2px 4px rgba(0,0,0,0.1);
-  transform: scale(1.01);
+  background: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(46, 125, 94, 0.12);
 }
 
 .suggested-tag-premium {
   padding: 8px 18px;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
@@ -254,19 +275,19 @@ input:focus, textarea:focus {
 }
 
 .suggested-tag-premium:hover {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(46, 125, 94, 0.1);
+  border-color: rgba(46, 125, 94, 0.3);
   color: var(--primary);
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 20px rgba(46, 125, 94, 0.1);
 }
 
 .hero-badge-premium {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(46, 125, 94, 0.1);
+  border: 1px solid rgba(46, 125, 94, 0.2);
   color: var(--primary);
   padding: 6px 14px;
   border-radius: 100px;
@@ -284,7 +305,7 @@ input:focus, textarea:focus {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.4) 100%);
+  background: radial-gradient(circle, transparent 20%, rgba(255,255,255,0.4) 100%);
   pointer-events: none;
   z-index: -1;
 }
@@ -310,9 +331,9 @@ input:focus, textarea:focus {
 
 .history-card-premium {
   flex: 0 0 200px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 20px;
   padding: 20px;
   cursor: pointer;
@@ -331,16 +352,16 @@ input:focus, textarea:focus {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent);
+  background: linear-gradient(135deg, rgba(46, 125, 94, 0.05), transparent);
   opacity: 0;
   transition: opacity 0.3s;
 }
 
 .history-card-premium:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(245, 158, 11, 0.2);
-  transform: translateY(-8px) rotate(1deg);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  background: #ffffff;
+  border-color: rgba(46, 125, 94, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(30, 58, 95, 0.07);
 }
 
 .history-card-premium:hover::after {
@@ -350,7 +371,7 @@ input:focus, textarea:focus {
 .history-card-icon {
   width: 40px;
   height: 40px;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(46, 125, 94, 0.1);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -362,7 +383,7 @@ input:focus, textarea:focus {
 .history-card-title {
   font-size: 14px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -373,27 +394,28 @@ input:focus, textarea:focus {
 
 .history-card-time {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
 }
 /* Cinematic Recipe Cards (Reference-Matched) */
 .recipe-card-cinematic {
-  background: #0f172a;
+  background: #ffffff;
   border-radius: 32px;
   overflow: hidden;
   transition: var(--transition-smooth);
   width: 100%;
   max-width: 400px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .recipe-card-cinematic:hover {
-  transform: translateY(-10px);
-  border-color: rgba(245, 158, 11, 0.3);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  transform: translateY(-6px);
+  border-color: rgba(46, 125, 94, 0.2);
+  box-shadow: 0 16px 40px rgba(30, 58, 95, 0.08);
 }
 
 .recipe-image-container {
@@ -426,8 +448,8 @@ input:focus, textarea:focus {
   backdrop-filter: blur(8px);
 }
 
-.badge-left { left: 20px; background: rgba(245, 158, 11, 0.2); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-right { left: 120px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+.badge-left { left: 20px; background: rgba(46, 125, 94, 0.9); color: #ffffff; border: 1px solid rgba(46, 125, 94, 1); }
+.badge-right { left: 120px; background: rgba(255, 255, 255, 0.9); color: var(--text-primary); border: 1px solid rgba(0, 0, 0, 0.1); }
 
 .recipe-body-premium {
   padding: 24px;
@@ -441,7 +463,7 @@ input:focus, textarea:focus {
   font-size: 28px;
   font-weight: 900;
   line-height: 1.1;
-  color: white;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   justify-content: space-between;
@@ -459,7 +481,7 @@ input:focus, textarea:focus {
 
 .recipe-description-cinematic {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
   display: -webkit-box;
@@ -475,7 +497,7 @@ input:focus, textarea:focus {
   margin-top: 8px;
   font-size: 11px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -495,7 +517,7 @@ input:focus, textarea:focus {
 
 /* Premium Map & Regional Styles */
 .map-container-premium {
-  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, rgba(10, 15, 29, 0) 70%);
+  background: radial-gradient(circle at center, rgba(46, 125, 94, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
   border-radius: 40px;
   display: flex;
   justify-content: center;
@@ -504,24 +526,26 @@ input:focus, textarea:focus {
 }
 
 .map-container-premium svg {
-  filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 20px 50px rgba(0,0,0,0.05));
 }
 
 .map-container-premium path {
   transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   cursor: pointer;
+  fill: #e2e8f0;
+  stroke: #ffffff;
 }
 
 .map-container-premium path:hover {
   stroke-width: 1px !important;
   stroke: var(--primary) !important;
-  filter: brightness(1.4);
+  fill: rgba(46, 125, 94, 0.2);
+  filter: brightness(0.9);
 }
 
 /* Tab/Header Badge Styles refined */
 .hero-badge-premium {
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: none;
 }
 
 /* Glass panel refinement for maps */
@@ -531,19 +555,15 @@ input:focus, textarea:focus {
 }
 
 .glass-panel-premium::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-  pointer-events: none;
+  display: none;
 }
 /* Shimmer Effect for Loading States */
 .shimmer-effect {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    rgba(0, 0, 0, 0.03) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.03) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 2s infinite ease-in-out;

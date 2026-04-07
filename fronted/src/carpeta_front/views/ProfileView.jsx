@@ -1,7 +1,13 @@
 import React from 'react';
 import { validarTagIA } from '../services/aiService';
 
-const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+function getAuthHeaders() {
+    const token = localStorage.getItem('venia_token');
+    return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+}
+
+const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange, onLogout, irARecuperar }) => {
   const [nombre, setNombre] = React.useState(usuario?.nombre || 'Alejandro Rodríguez');
   const [email, setEmail] = React.useState(usuario?.email || 'alejandro.rod@venia.com');
   const [telefono, setTelefono] = React.useState(usuario?.telefono || '');
@@ -31,6 +37,20 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
   const [tagError, setTagError] = React.useState('');
   const [validandoTag, setValidandoTag] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [botStatus, setBotStatus] = React.useState(null);
+
+  React.useEffect(() => {
+    if (usuario?.id_usuario) {
+      fetch(`${API_BASE_URL}/bot/estado/${usuario.id_usuario}`, { headers: getAuthHeaders() })
+        .then(r => r.json())
+        .then(data => {
+           if (data.success) {
+             setBotStatus(data.estado);
+           }
+        })
+        .catch(e => console.error("Error obteniendo estado bot en perfil:", e));
+    }
+  }, [usuario]);
 
   const hasChanges = React.useMemo(() => {
     const isNombreDiff = nombre !== (usuario?.nombre || 'Alejandro Rodríguez');
@@ -132,11 +152,12 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
     if (onActualizarUsuario) {
       setIsSaving(true);
       try {
-        const exito = await onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
-        // Assume éxito by default unless throws, though backend might return success bool
-        if (exito !== false) {
+        const res = await onActualizarUsuario({ ...usuario, nombre, email, telefono, bio, preferencias_dieteticas: dietaryStyle });
+        if (res && res.success) {
           setModalStatus('success');
           setTimeout(() => setModalStatus(null), 3000);
+        } else if (res && !res.success) {
+          setErrores(prev => ({ ...prev, backend: res.mensaje || 'Error del servidor al guardar.' }));
         }
       } catch (error) {
         console.error(error);
@@ -144,6 +165,11 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
         setIsSaving(false);
       }
     }
+  };
+
+  const handleLogoutClick = (e) => {
+    e.preventDefault();
+    if (onLogout) onLogout();
   };
 
   const handleDiscard = () => {
@@ -180,7 +206,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             margin: '0 0 20px', 
             letterSpacing: '-4px', 
             lineHeight: '0.85', 
-            color: 'white' 
+            color: 'var(--text-primary)' 
           }}>
             Settings <span style={{ color: 'var(--primary)' }}>&</span><br/>Perfil
           </h1>
@@ -189,28 +215,40 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
           </p>
         </div>
         
-        <div style={{ display: 'flex', gap: '15px', paddingTop: '45px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '12px', paddingTop: '45px', alignItems: 'center' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {modalStatus === 'success' && <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓ Quedó al pelo!</span>}
+            {modalStatus === 'success' && <span style={{ color: '#3a9e77', fontWeight: 'bold' }}>✓ Quedó al pelo!</span>}
+            
+            <button 
+              onClick={handleLogoutClick}
+              style={{ 
+                background: 'rgba(30, 58, 95, 0.05)', color: 'var(--secondary)', padding: '16px 28px', 
+                borderRadius: '40px', border: '1.5px solid var(--outline)', fontWeight: '800', cursor: 'pointer',
+                fontSize: '14px', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
+              <span style={{ fontSize: '18px' }}>🚪</span> Cerrar Sesión
+            </button>
+
             <button 
               onClick={handleDiscard}
               style={{ 
-                background: 'transparent', color: 'white', padding: '16px 36px', 
+                background: 'transparent', color: 'var(--text-primary)', padding: '16px 28px', 
                 borderRadius: '40px', border: '1px solid var(--outline)', fontWeight: '700', cursor: 'pointer',
-                fontSize: '15px', opacity: hasChanges ? 1 : 0.5
+                fontSize: '14px', opacity: hasChanges ? 1 : 0.5
               }}>
               Descartar
             </button>
+
             <button 
               onClick={handleSave}
               disabled={isSaving}
               className={isSaving ? "btn-saving-pulse" : ""}
               style={{ 
-                background: modalStatus === 'success' ? '#10b981' : 'var(--primary)', color: modalStatus === 'success' ? 'white' : 'var(--on-primary)', padding: '16px 36px', 
+                background: modalStatus === 'success' ? '#3a9e77' : 'var(--primary)', color: modalStatus === 'success' ? 'white' : 'var(--on-primary)', padding: '16px 32px', 
                 borderRadius: '40px', border: 'none', fontWeight: '800', cursor: isSaving ? 'wait' : 'pointer',
-                boxShadow: '0 15px 30px rgba(245, 158, 11, 0.3)',
+                boxShadow: '0 15px 30px rgba(46, 125, 94, 0.3)',
                 transition: 'all 0.4s ease',
-                fontSize: '15px',
+                fontSize: '14px',
                 opacity: (hasChanges || modalStatus === 'success' || isSaving) ? 1 : 0.7
               }}>
               {isSaving ? 'Actualizando...' : modalStatus === 'success' ? '¡Guardado!' : 'Guardar Cambios'}
@@ -228,79 +266,84 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
           <div className="glass-card" style={{ padding: '45px', display: 'flex', alignItems: 'center', gap: '35px' }}>
             <div style={{ position: 'relative' }}>
               <div style={{ 
-                width: '130px', height: '130px', borderRadius: '50%', background: 'linear-gradient(180deg, #1e293b, #0f172a)', padding: '3px', border: '1px solid var(--outline)'
+                width: '130px', height: '130px', borderRadius: '50%', background: 'var(--surface-bright)', padding: '3px', border: '2px solid var(--primary)',
+                boxShadow: '0 8px 24px rgba(46, 125, 94, 0.15)'
               }}>
                 <div style={{ 
-                  width: '100%', height: '100%', borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
+                  width: '100%', height: '100%', borderRadius: '50%', background: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
                 }}>
-                  <svg viewBox="0 0 24 24" width="65" height="65" fill="#334155">
+                  <svg viewBox="0 0 24 24" width="65" height="65" fill="#7a94ae">
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 </div>
               </div>
-              <button style={{ 
-                position: 'absolute', bottom: '4px', right: '4px', width: '34px', height: '34px', borderRadius: '10px', 
-                background: 'var(--primary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-              }}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--on-primary)"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              </button>
             </div>
             <div>
               <h3 style={{ fontSize: '32px', margin: '0 0 5px', fontWeight: '900', letterSpacing: '-0.5px' }}>{nombre}</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: 0, fontWeight: '500' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: '0 0 5px 0', fontWeight: '500' }}>
                 {(() => {
                   if (usuario?.fecha_creacion) {
                     const fecha = new Date(usuario.fecha_creacion);
                     const year = fecha.getFullYear();
-                    return `Miembro desde ${year}`;
+                    if (!isNaN(year) && year > 2000) return `Miembro desde ${year}`;
                   }
-                  return 'Miembro desde año desconocido';
+                  return null;
                 })()}
               </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ color: botStatus === 'activa' ? '#3a9e77' : 'var(--text-muted)', fontSize: '14px', margin: 0, fontWeight: '800' }}>
+                  {botStatus === 'activa' ? '🤖 Suscripción Auto-Chef: ACTIVA' : '📴 Suscripción Auto-Chef: INACTIVA'}
+                </p>
+                {botStatus === 'activa' ? 
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3a9e77', boxShadow: '0 0 10px rgba(58, 158, 119, 0.8)' }}></span> :
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--outline-variant)' }}></span>
+                }
+              </div>
             </div>
           </div>
 
           {/* Form Card */}
           <div className="glass-card" style={{ padding: '45px', flex: 1 }}>
+            {errores.backend && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontWeight: 'bold' }}>👵🏽 {errores.backend}</div>}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '35px' }}>
               <div>
                 <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>NOMBRE COMPLETO</label>
                 <input 
                   type="text" value={nombre} onChange={(e) => setNombre(e.target.value)}
                   maxLength={30}
-                  style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '20px 24px', borderRadius: '20px', background: 'var(--surface-bright)', border: '1.5px solid var(--outline)', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'var(--font-body)', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}
                 />
-                {errores.nombre && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.nombre}</div>}
+                {errores.nombre && <div style={{ color: 'var(--error)', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.nombre}</div>}
               </div>
               <div>
-                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>TELÉFONO</label>
+                <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px', textTransform: 'uppercase' }}>TELÉFONO</label>
                 <input 
                   type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   maxLength={11}
-                  style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '20px 24px', borderRadius: '20px', background: 'var(--surface-bright)', border: '1.5px solid var(--outline)', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'var(--font-body)', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}
                   placeholder="Ej: 04121234567"
                 />
-                {errores.telefono && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.telefono}</div>}
+                {errores.telefono && <div style={{ color: 'var(--error)', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.telefono}</div>}
               </div>
             </div>
             <div style={{ marginBottom: '35px' }}>
-              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>CORREO ELECTRÓNICO</label>
+              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px', textTransform: 'uppercase' }}>CORREO ELECTRÓNICO</label>
               <input 
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 maxLength={50}
-                style={{ width: '100%', padding: '20px 24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', fontSize: '16px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '20px 24px', borderRadius: '20px', background: 'var(--surface-bright)', border: '1.5px solid var(--outline)', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', boxSizing: 'border-box', fontFamily: 'var(--font-body)', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}
               />
-              {errores.email && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.email}</div>}
+              {errores.email && <div style={{ color: 'var(--error)', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.email}</div>}
 
             </div>
             <div>
-              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px' }}>BIO E INTERÉS CULINARIO</label>
+              <label style={{ display: 'block', color: 'var(--primary)', fontSize: '13px', marginBottom: '14px', fontWeight: '800', letterSpacing: '1.2px', textTransform: 'uppercase' }}>BIO E INTERÉS CULINARIO</label>
               <textarea 
                 value={bio} onChange={(e) => setBio(e.target.value)}
                 maxLength={50}
-                style={{ width: '100%', padding: '24px', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--outline-variant)', color: 'white', outline: 'none', minHeight: '140px', resize: 'vertical', fontSize: '16px', lineHeight: '1.7', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--surface-bright)', border: '1.5px solid var(--outline)', color: 'var(--text-primary)', outline: 'none', minHeight: '140px', resize: 'vertical', fontSize: '16px', lineHeight: '1.7', boxSizing: 'border-box', fontFamily: 'var(--font-body)', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}
               />
-              {errores.bio && <div style={{ color: '#f87171', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.bio}</div>}
+              {errores.bio && <div style={{ color: 'var(--error)', fontSize: '13px', marginTop: '6px', fontWeight: 'bold' }}>{errores.bio}</div>}
             </div>
           </div>
         </div>
@@ -319,7 +362,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                     onClick={() => toggleTag(tag.nombre)}
                     style={{ 
                       padding: '10px 28px 10px 18px', borderRadius: '30px', border: 'none',
-                      background: tag.activo ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                      background: tag.activo ? 'var(--primary)' : 'rgba(0,0,0,0.03)',
                       color: tag.activo ? 'var(--on-primary)' : 'var(--text-secondary)',
                       fontWeight: '800', fontSize: '13px', cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)', position: 'relative',
@@ -348,9 +391,10 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
                     onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                     placeholder="Nueva etiqueta..."
                     style={{ 
-                      flex: 1, padding: '10px 15px', borderRadius: '15px', 
-                      background: 'rgba(0,0,0,0.4)', border: '1px solid var(--primary)', 
-                      color: 'white', fontSize: '13px', outline: 'none' 
+                      flex: 1, padding: '12px 18px', borderRadius: '16px', 
+                      background: 'var(--surface-bright)', border: '1.5px solid var(--outline)', 
+                      color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'var(--font-body)',
+                      boxShadow: '0 2px 6px rgba(30, 58, 95, 0.04)', transition: 'all 0.3s ease'
                     }}
                   />
                   <button 
@@ -379,9 +423,9 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
               </div>
             )}
 
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '25px', borderRadius: '25px', position: 'relative', marginTop: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
-              <div style={{ position: 'absolute', top: '12px', right: '12px', color: 'var(--text-muted)', fontSize: '16px', opacity: 0.5 }}>ⓘ</div>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', fontWeight: '500' }}>
+            <div style={{ background: 'var(--primary-container)', padding: '25px', borderRadius: '24px', position: 'relative', marginTop: '40px', border: '1px solid var(--primary)' }}>
+              <div style={{ position: 'absolute', top: '12px', right: '12px', color: 'var(--primary)', fontSize: '16px', opacity: 0.8 }}>ⓘ</div>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-primary)', lineHeight: '1.6', fontWeight: '600' }}>
                 Tu perfil de sabor ayuda a nuestra IA a priorizar <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>especialidades regionales</span> del Zulia y los Andes según tu gusto.
               </p>
             </div>
@@ -392,12 +436,14 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
       <div className="glass-card" style={{ marginTop: '40px', padding: '35px 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--outline-variant)' }}>
         <div>
           <h4 style={{ fontSize: '18px', margin: '0 0 8px', fontWeight: '900' }}>Privacidad de la Cuenta</h4>
-          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>Administra tus datos y la visibilidad de tu perfil.</p>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>Administra tus credenciales y mejora la seguridad de tu perfil.</p>
         </div>
-        <button style={{ 
-          background: 'transparent', border: 'none', color: '#ff716c', fontWeight: '900', cursor: 'pointer', fontSize: '17px', letterSpacing: '0.5px'
+        <button 
+          onClick={irARecuperar}
+          style={{ 
+          background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: '900', cursor: 'pointer', fontSize: '17px', letterSpacing: '0.5px'
         }}>
-          Eliminar Cuenta
+          Cambiar contraseña
         </button>
       </div>
 
@@ -414,7 +460,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             style={{ 
               padding: '60px', textAlign: 'center', maxWidth: '550px', 
               boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
-              border: modalStatus === 'warning' ? '1px solid #EF4444' : '1px solid #10b981',
+              border: modalStatus === 'warning' ? '1px solid #EF4444' : '1px solid #3a9e77',
               animation: modalStatus === 'warning' ? 'shakeCard 0.5s cubic-bezier(.36,.07,.19,.97) both' : 'fadeInUp 0.5s ease both'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -424,12 +470,12 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             </div>
             <h3 style={{ 
               fontSize: '32px', 
-              color: modalStatus === 'warning' ? '#EF4444' : '#10b981', 
+              color: modalStatus === 'warning' ? '#EF4444' : '#3a9e77', 
               marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' 
             }}>
               {modalStatus === 'warning' ? '¡Epa mijo, cuidado!' : '¡Quedó al pelo!'}
             </h3>
-            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>
+            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'var(--text-primary)', opacity: 0.9, fontWeight: '500' }}>
               {modalStatus === 'warning' 
                 ? 'No te vayas sin guardar los cambios, que la abuela se va a enojar si se pierde tu progreso.' 
                 : 'Tus preferencias se han guardado con éxito. ¡Ahora a cocinar con alma!'}
@@ -437,10 +483,10 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '40px' }}>
               {modalStatus === 'warning' ? (
                 <>
-                  <button className="btn-gold" onClick={() => setModalStatus(null)} style={{ background: 'transparent', border: '1px solid white', color: 'white' }}>
+                  <button className="btn-gold" onClick={() => setModalStatus(null)} style={{ background: 'transparent', border: '1px solid var(--outline-variant)', color: 'var(--text-primary)' }}>
                     VOLVER A GUARDAR
                   </button>
-                  <button className="btn-gold" onClick={confirmDiscard} style={{ background: '#EF4444', color: 'white' }}>
+                  <button className="btn-gold" onClick={confirmDiscard} style={{ background: '#EF4444', color: 'var(--text-primary)' }}>
                     DESCARTAR IGUAL
                   </button>
                 </>
@@ -466,9 +512,9 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulseSaving {
-          0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-          70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+          0% { box-shadow: 0 0 0 0 rgba(46, 125, 94, 0.7); }
+          70% { box-shadow: 0 0 0 15px rgba(46, 125, 94, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(46, 125, 94, 0); }
         }
         .btn-saving-pulse {
           animation: pulseSaving 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
@@ -476,7 +522,7 @@ const ProfileView = ({ usuario, onActualizarUsuario, onDirtyStateChange }) => {
         .btn-gold { 
           padding: 15px 30px; border-radius: 100px; fontSize: 15px; fontWeight: 800;
           background: var(--primary); color: var(--on-primary); border: none; cursor: pointer;
-          transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+          transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(46, 125, 94, 0.2);
         }
         .btn-gold:hover { transform: scale(1.05); }
       `}</style>

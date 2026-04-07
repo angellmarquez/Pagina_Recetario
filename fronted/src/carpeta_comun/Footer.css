@@ -23,7 +23,7 @@
 }
 
 .footer-section h4 {
-  color: #FFD700;
+  color: #2e7d5e;
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 25px;
@@ -41,7 +41,7 @@
 .logo-text {
   font-size: 24px;
   font-weight: 900;
-  color: #FFD700;
+  color: #2e7d5e;
   letter-spacing: -1px;
 }
 
@@ -74,7 +74,7 @@
 }
 
 .footer-section ul li a:hover {
-  color: #FFD700;
+  color: #2e7d5e;
   padding-left: 5px;
 }
 
@@ -83,7 +83,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(0,0,0,0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;

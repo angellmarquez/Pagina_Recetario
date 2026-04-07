@@ -15,7 +15,7 @@ import TimerIA from './components/TimerIA';
 import { generarRecetaIA, generarPlanIA } from './services/aiService';
 import { apiGuardarReceta, apiObtenerRecetasUsuario, apiEliminarReceta } from './services/apiService';
 
-const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
+const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario, irARecuperar }) => {
   const [prompt, setPrompt] = useState('');
   const [respuestaIA, setRespuestaIA] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -148,7 +148,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
     if (!respuestaIA || !usuario?.id_usuario) return;
     setGuardando(true);
     try {
-      const { data } = await apiGuardarReceta(usuario.id_usuario, prompt, recetaActiva, respuestaIA);
+      const { data } = await apiGuardarReceta(usuario.id_usuario, recetaActiva?.titulo || prompt, recetaActiva, respuestaIA);
       if (data.success) {
         setMensajeGuardado('¡Guardada! ❤️');
         addNotification('Receta Guardada', `"${recetaActiva.titulo}" archivada con éxito.`, 'success');
@@ -182,9 +182,13 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
   };
 
   return (
-    <div className="app-container" style={{ background: fondoActivo, minHeight: '100vh', transition: 'background 1.5s ease' }}>
+    <div className="app-container" style={{ 
+      background: 'radial-gradient(ellipse at 0% 0%, rgba(46,125,94,0.06) 0%, transparent 50%), radial-gradient(ellipse at 100% 100%, rgba(30,58,95,0.05) 0%, transparent 50%), linear-gradient(135deg, #f9f6f1 0%, #ffffff 50%, #f3ede4 100%)',
+      minHeight: '100vh', 
+      transition: 'background 1.5s ease' 
+    }}>
       <div style={{ position: 'absolute', top: '20px', right: '40px', zIndex: 1000 }}>
-        <button className="glass-card" onClick={() => setDashboardAbierto(true)} style={{ padding: '12px 24px', color: 'white', background: 'rgba(255,255,255,0.05)', cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <button className="glass-card" onClick={() => setDashboardAbierto(true)} style={{ padding: '12px 24px', color: 'var(--text-primary)', background: 'rgba(0,0,0,0.03)', cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span>🔔</span> Notificaciones {notificaciones.length > 0 && <span className="notif-count">{notificaciones.length}</span>}
         </button>
       </div>
@@ -205,7 +209,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
             {['buscar', 'descubrir', 'nevera'].includes(seccionActiva) && !recetaActiva && !cargando && (
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                   <SearchView prompt={prompt} setPrompt={setPrompt} generarReceta={generarReceta} cargando={cargando} seccionActiva={seccionActiva} recentRecipes={recentRecipes} onSelectRecipe={(r) => { setRecetaActiva(r); setRespuestaIA(r.historia); }} onClearHistory={() => { setRecentRecipes([]); localStorage.removeItem('venia_recent_history_v2'); }} lockIAUntil={lockIAUntil} />
-                  {seccionActiva === 'descubrir' && <DiscoverFeed apiKey={import.meta.env.VITE_GROQ_API_KEY} onSelectRecipe={(tit) => { setPrompt(tit); generarReceta(tit); }} />}
+                  {seccionActiva === 'descubrir' && <DiscoverFeed onSelectRecipe={(tit) => { setPrompt(tit); generarReceta(tit); }} />}
                 </div>
             )}
             {recetaActiva && !cargando && <RecipeDetailView recetaActiva={recetaActiva} guardarReceta={guardarReceta} guardando={guardando} mensajeGuardado={mensajeGuardado} setRecetaActiva={setRecetaActiva} setPrompt={setPrompt} setRespuestaIA={setRespuestaIA} />}
@@ -229,7 +233,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                 >
                   <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽</div>
                   <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, ten cuidado!</h3>
-                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>{respuestaIA}</p>
+                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'var(--text-primary)', opacity: 0.9, fontWeight: '500' }}>{respuestaIA}</p>
                   <button 
                     className="btn-gold" 
                     onClick={() => setRespuestaIA('')}
@@ -260,21 +264,21 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                 >
                   <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽☝🏽</div>
                   <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, no te vayas todavía!</h3>
-                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>
+                  <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'var(--text-primary)', opacity: 0.9, fontWeight: '500' }}>
                     Tienes cambios sin guardar en tu perfil. Si te vas ahora, la abuela se va a enojar porque se perderá tu progreso.
                   </p>
                   <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '40px' }}>
                     <button 
                       className="btn-gold" 
                       onClick={() => setMostrarAlertaNavegacion(false)}
-                      style={{ background: 'transparent', border: '1px solid white', color: 'white' }}
+                      style={{ background: 'transparent', border: '1px solid var(--outline-variant)', color: 'var(--text-primary)' }}
                     >
                       VOLVER Y GUARDAR
                     </button>
                     <button 
                       className="btn-gold" 
                       onClick={confirmarNavegacion}
-                      style={{ background: '#EF4444', color: 'white' }}
+                      style={{ background: '#EF4444', color: 'var(--text-primary)' }}
                     >
                       IRME SIN GUARDAR
                     </button>
@@ -309,7 +313,7 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                         <img src={getRecipeImage(r.titulo)} alt={r.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(15, 23, 42, 1) 0%, transparent 100%)' }} />
                         <button onClick={(e) => handleEliminarReceta(e, r.id_receta)} 
-                                 style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(239, 68, 68, 0.5)', border: 'none', width: '44px', height: '44px', borderRadius: '50%', color: 'white', backdropFilter: 'blur(10px)', cursor: 'pointer', transition: '0.3s' }}
+                                 style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(239, 68, 68, 0.5)', border: 'none', width: '44px', height: '44px', borderRadius: '50%', color: 'var(--text-primary)', backdropFilter: 'blur(10px)', cursor: 'pointer', transition: '0.3s' }}
                                  onMouseOver={(e) => e.target.style.background = '#EF4444'}>🗑️</button>
                       </div>
                       <div style={{ padding: '30px', marginTop: '-30px', position: 'relative', zIndex: 2 }}>
@@ -328,6 +332,8 @@ const MenuRecetario = ({ usuario, onLogout, onActualizarUsuario }) => {
                 usuario={usuario} 
                 onActualizarUsuario={onActualizarUsuario} 
                 onDirtyStateChange={(isDirty) => setPerfilSucio(isDirty)}
+                onLogout={onLogout}
+                irARecuperar={irARecuperar}
               />
             )}
           </div>

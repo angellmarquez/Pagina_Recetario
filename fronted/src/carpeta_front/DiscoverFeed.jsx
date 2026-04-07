@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Groq from 'groq-sdk';
 import RecipeImage from './components/RecipeImage';
 
-const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+const DiscoverFeed = ({ onSelectRecipe }) => {
   const [feed, setFeed] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [cargandoMas, setCargandoMas] = useState(false);
   const [error, setError] = useState('');
-
-  const groq = new Groq({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true,
-  });
 
   const getBadgeType = (idx) => {
     const types = ['signature', 'heritage', 'popular'];
@@ -31,34 +27,24 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
     setError('');
 
     try {
-      const promptFeed = `Eres VENIA, una experta abuela venezolana. 
-      Por favor, dame ${isLoadMore ? 'OTRAS ' : ''}6 recetas de platos muy variados y CULTURALMENTE EXACTOS de Venezuela.
-      ${isLoadMore ? 'ASEGÚRATE DE QUE SEAN PLATOS DISTINTOS A LOS QUE YA SUGERISTE. NO repitas los más comunes.' : ''}
-      Intenta que haya variedad (desayuno, almuerzo, cena, postre, sopa).
-      MUY IMPORTANTE: Usa nombres oficiales e históricos exactos (ej: "Pabellón Criollo", "Asado Negro").
-      Devuelve ÚNICAMENTE en formato json válido:
-      {
-        "feed": [
-          {
-            "titulo": "Nombre del plato",
-            "descripcion_corta": "Breve frase encantadora.",
-            "tiempo": "15 min",
-            "tags": ["Desayuno", "Maíz"]
-          }
-        ]
-      }`;
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [{ role: "user", content: promptFeed }],
-        model: "llama-3.3-70b-versatile",
-        temperature: isLoadMore ? 0.9 : 0.8,
-        response_format: { type: "json_object" },
+      const token = localStorage.getItem('venia_token');
+      const response = await fetch(`${API_BASE_URL}/ai/discover-feed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ isLoadMore })
       });
 
-      const dataString = chatCompletion.choices[0]?.message?.content || "{}";
-      const parseado = JSON.parse(dataString);
+      if (!response.ok) {
+        throw new Error('Error del servidor');
+      }
 
-      if (parseado.feed && Array.isArray(parseado.feed)) {
+      const result = await response.json();
+      const parseado = result.data;
+
+      if (parseado && parseado.feed && Array.isArray(parseado.feed)) {
         if (isLoadMore) {
           setFeed(prev => [...prev, ...parseado.feed]);
         } else {
@@ -79,7 +65,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
   useEffect(() => {
     if (feed.length === 0) fetchFeed();
     // eslint-disable-next-line
-  }, [apiKey]);
+  }, []);
 
   if (cargando) {
     return (
@@ -87,7 +73,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
           {[1, 2, 3].map((skel) => (
             <div key={skel} style={{
-              background: 'rgba(255,255,255,0.03)',
+              background: '#f3ede4',
               borderRadius: '28px',
               height: '450px',
               animation: 'pulse 1.5s infinite ease-in-out'
@@ -118,7 +104,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
             display: 'block',
             marginBottom: '8px'
           }}>TRADICIÓN E INNOVACIÓN</span>
-          <h2 style={{ fontSize: '36px', fontWeight: '900', margin: 0, color: 'white' }}>Explorar Recetas</h2>
+          <h2 style={{ fontSize: '36px', fontWeight: '900', margin: 0, color: 'var(--text-primary)' }}>Explorar Recetas</h2>
         </div>
         
         <button 
@@ -164,7 +150,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
                 {/* Overlay Badges */}
                 <div style={{ position: 'absolute', bottom: '20px', left: '20px', display: 'flex', gap: '10px' }}>
                   <span className={`badge badge-${badgeType}`}>{getBadgeLabel(badgeType)}</span>
-                  <span className="badge" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <span className="badge" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: 'var(--text-primary)', border: '1px solid rgba(0,0,0,0.05)' }}>
                     ELECCIÓN DEL CHEF
                   </span>
                 </div>
@@ -173,7 +159,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
               {/* Content */}
               <div style={{ padding: '30px 0', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: '800' }}>
+                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '24px', fontWeight: '800' }}>
                     {receta.titulo}
                   </h3>
                   <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: '800', whiteSpace: 'nowrap' }}>
@@ -189,7 +175,7 @@ const DiscoverFeed = ({ apiKey, onSelectRecipe }) => {
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {receta.tags?.slice(0, 2).map((tag, tIdx) => (
                     <span key={tIdx} style={{
-                      color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em'
+                      color: 'var(--text-muted)', fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em'
                     }}>
                       • {tag}
                     </span>

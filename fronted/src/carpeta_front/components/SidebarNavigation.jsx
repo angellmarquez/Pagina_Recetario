@@ -11,7 +11,6 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
 
   const navItems = [
     { id: 'descubrir', label: 'Descubrir', icon: <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" /> },
-    { id: 'buscar', label: 'Buscar Sabores', icon: <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /> },
     { id: 'nevera', label: 'Explorar Nevera', icon: <path d="M7 2h10c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm0 10v7h10v-7H7zm0-8v6h10V4H7zm2 1h2v4H9V5zm0 9h2v4H9v-4z" /> },
     { id: 'regiones', label: 'Regiones del Mundo', icon: <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z" /> },
     { id: 'plan', label: 'Plan Semanal', icon: <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /> },
@@ -26,11 +25,14 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
       display: 'flex',
       flexDirection: 'column',
       padding: '40px 20px',
-      background: '#0a0f18', 
-      borderRight: '1px solid rgba(255,255,255,0.05)',
+      background: '#ffffff',
+      borderRight: '1px solid rgba(0,0,0,0.06)',
       position: 'sticky',
       top: 0,
-      zIndex: 100
+      zIndex: 100,
+      boxShadow: '4px 0 24px rgba(0,0,0,0.04)',
+      overflowY: 'auto',
+      scrollbarWidth: 'none',
     }}>
       {/* Brand */}
       <div style={{ marginBottom: '50px', paddingLeft: '20px' }}>
@@ -50,7 +52,7 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
               padding: '16px 20px',
               borderRadius: '20px',
               border: 'none',
-              background: seccionActiva === item.id ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
+              background: seccionActiva === item.id ? 'rgba(46, 125, 94, 0.08)' : 'transparent',
               color: seccionActiva === item.id ? 'var(--primary)' : 'var(--text-secondary)',
               cursor: 'pointer',
               display: 'flex',
@@ -88,7 +90,7 @@ const SidebarNavigation = ({ seccionActiva, setSeccionActiva, setPrompt, setRece
           fontWeight: '900',
           fontSize: '15px',
           cursor: 'pointer',
-          boxShadow: '0 15px 30px rgba(245, 158, 11, 0.2)',
+          boxShadow: '0 15px 30px rgba(46, 125, 94, 0.2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

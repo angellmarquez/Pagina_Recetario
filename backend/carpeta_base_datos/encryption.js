@@ -1,27 +1,47 @@
 const crypto = require('node:crypto');
 
-// Llave de 32 bytes y IV de 16 bytes (En un entorno Real esto iría en el .env)
+// Llave y algoritmo se leen del .env — NUNCA hardcodear en producción
 const ALGORITHM = 'aes-256-cbc';
-const KEY = '12345678901234567890123456789012'; // 32 chars
-const IV = '1234567890123456'; // 16 chars
+const KEY = Buffer.from(process.env.ENCRYPTION_KEY || '0'.repeat(64), 'hex'); // 32 bytes from hex
 
+/**
+ * Encripta texto usando AES-256-CBC con un IV aleatorio por cada operación.
+ * El IV se antepone al ciphertext (primeros 32 chars hex = 16 bytes IV).
+ */
 function encrypt(text) {
     if (!text) return text;
-    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(KEY), Buffer.from(IV));
+    const iv = crypto.randomBytes(16); // IV aleatorio por cada encriptación
+    const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return encrypted;
+    // Concatenamos el IV al inicio para poder desencriptar después
+    return iv.toString('hex') + ':' + encrypted;
 }
 
+/**
+ * Desencripta texto. Detecta automáticamente el formato:
+ * - Nuevo formato: "iv_hex:ciphertext_hex"
+ * - Formato viejo (legacy): solo "ciphertext_hex" sin IV (para migración)
+ */
 function decrypt(text) {
     if (!text) return text;
     try {
-        const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(KEY), Buffer.from(IV));
-        let decrypted = decipher.update(text, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
-        return decrypted;
+        if (text.includes(':')) {
+            // Formato nuevo con IV aleatorio
+            const parts = text.split(':');
+            const iv = Buffer.from(parts[0], 'hex');
+            const encryptedText = parts[1];
+            const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
+            let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return decrypted;
+        } else {
+            // Fallback: dato que no fue encriptado por nosotros, retornar original
+            return text;
+        }
     } catch (error) {
-        // Si no se puede desencriptar (ej: datos viejos), retornamos el original
+        // Si no se puede desencriptar, retornamos el original
+        console.error('Decryption error (dato corrupto o clave incorrecta):', error.message);
         return text;
     }
 }

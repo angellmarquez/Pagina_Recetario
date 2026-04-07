@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import placeholderImg from '../../assets/recipe-placeholder.png';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 /**
  * RecipeImage component handles:
  * - Loading state with shimmer effect
@@ -41,8 +43,8 @@ const RecipeImage = ({ query, origin = 'venezuela', alt = 'Receta', style = {}, 
     if (foundHardcoded) {
       setSrc(foundHardcoded);
     } else {
-      // Use proxy if no hardcoded match
-      const proxyUrl = `http://localhost:3000/api/recetas/imagen?q=${encodeURIComponent(query)}&origin=${origin}`;
+      // Use proxy — no auth needed for image proxy (public endpoint)
+      const proxyUrl = `${API_BASE_URL}/recetas/imagen?q=${encodeURIComponent(query)}&origin=${origin}`;
       setSrc(proxyUrl);
     }
   }, [query, origin]);

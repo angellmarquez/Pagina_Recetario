@@ -14,7 +14,7 @@ const ExploradorSide = ({ abierto, onCerrar, estados, onSeleccionarEstado }) => 
         height: '100%',
         zIndex: 2000,
         display: 'flex',
-        background: 'rgba(0,0,0,0.4)',
+        background: 'rgba(255,255,255,0.8)',
         backdropFilter: 'blur(4px)',
         transition: 'all 0.4s'
       }} 
@@ -26,7 +26,7 @@ const ExploradorSide = ({ abierto, onCerrar, estados, onSeleccionarEstado }) => 
           height: '100%',
           background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
+          borderRight: '1px solid rgba(0,0,0,0.05)',
           padding: '30px',
           display: 'flex',
           flexDirection: 'column',
@@ -37,15 +37,15 @@ const ExploradorSide = ({ abierto, onCerrar, estados, onSeleccionarEstado }) => 
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
-            <h2 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: '800' }}>📍 Explorador</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', margin: '4px 0 0 0' }}>Sazón por regiones</p>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: '800' }}>📍 Explorador</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '4px 0 0 0' }}>Sazón por regiones</p>
           </div>
           <button 
             onClick={onCerrar} 
             style={{ 
-              background: 'rgba(255,255,255,0.05)', 
+              background: 'rgba(0,0,0,0.03)', 
               border: 'none', 
-              color: 'white', 
+              color: 'var(--text-primary)', 
               width: '32px', 
               height: '32px', 
               borderRadius: '50%', 
@@ -83,8 +83,8 @@ const ExploradorSide = ({ abierto, onCerrar, estados, onSeleccionarEstado }) => 
           ))}
         </div>
 
-        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', margin: 0 }}>🇻🇪 Sabores de Venezuela</p>
+        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(0,0,0,0.03)', textAlign: 'center' }}>
+          <p style={{ color: 'rgba(0,0,0,0.1)', fontSize: '11px', margin: 0 }}>🇻🇪 Sabores de Venezuela</p>
         </div>
       </div>
 

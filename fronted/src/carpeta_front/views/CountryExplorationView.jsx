@@ -58,24 +58,29 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
   return (
     <div className="stagger-1" style={{ width: '100%', position: 'relative', minHeight: '90vh', padding: '40px 0' }}>
       
-      {/* Cinematic Immersive Background */}
+      {/* Clean Vichy background — no random food images */}
       <div style={{
-          position: 'fixed',
-          top: 0, left: 0, width: '100%', height: '100%',
-          backgroundImage: `url(${getRegionImage(pais, tipoLugar)})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          zIndex: -1,
-          opacity: 0.3,
-          filter: 'saturate(1.2) brightness(0.8)',
-          transition: 'all 1.5s ease'
+        position: 'fixed',
+        top: 0, left: 0, width: '100%', height: '100%',
+        background: 'linear-gradient(135deg, #f9f6f1 0%, #ffffff 50%, #f3ede4 100%)',
+        backgroundImage: 'none',
+        zIndex: -2,
+        pointerEvents: 'none'
+      }} />
+      {/* Subtle accent blobs */}
+      <div style={{
+        position: 'fixed',
+        top: '-100px', right: '-100px', width: '500px', height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(46,125,94,0.05) 0%, transparent 70%)',
+        zIndex: -1, pointerEvents: 'none'
       }} />
       <div style={{
-          position: 'fixed',
-          top: 0, left: 0, width: '100%', height: '100%',
-          background: 'linear-gradient(to bottom, transparent 0%, var(--surface-container-lowest) 90%)',
-          zIndex: -1,
-          pointerEvents: 'none'
+        position: 'fixed',
+        bottom: '-100px', left: '-80px', width: '400px', height: '400px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(30,58,95,0.04) 0%, transparent 70%)',
+        zIndex: -1, pointerEvents: 'none'
       }} />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
@@ -85,31 +90,31 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
           <button 
             onClick={onVolver}
             style={{ 
-              background: 'rgba(255, 255, 255, 0.05)', 
-              border: '1px solid rgba(255, 255, 255, 0.1)', 
-              color: 'white', 
-              padding: '10px 24px',
+              background: 'var(--surface-bright)', 
+              border: '1.5px solid var(--primary)', 
+              color: 'var(--primary)', 
+              padding: '12px 28px',
               borderRadius: '100px',
-              fontSize: '13px',
+              fontSize: '14px',
               fontWeight: '800',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s ease'
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(46, 125, 94, 0.1)',
+              transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)'
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            onMouseOver={(e) => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = 'var(--on-primary)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'var(--surface-bright)'; e.currentTarget.style.color = 'var(--primary)'; }}
           >
             <span style={{ fontSize: '18px' }}>←</span> VOLVER
           </button>
 
           <div className="hero-badge-premium" style={{ 
             margin: 0,
-            background: isVenezuelaState ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-            color: isVenezuelaState ? '#4ade80' : 'var(--primary)',
-            borderColor: isVenezuelaState ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'
+            background: 'rgba(46, 125, 94, 0.12)',
+            color: 'var(--primary)',
+            borderColor: 'rgba(46, 125, 94, 0.2)'
           }}>
             {isVenezuelaState ? '🇻🇪 PATRIMONIO NACIONAL' : '🌍 EXPLORACIÓN GLOBAL'}
           </div>
@@ -122,19 +127,19 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
             fontWeight: '900', 
             margin: '0 0 20px 0', 
             letterSpacing: '-2px', 
-            color: 'white',
+            color: 'var(--text-primary)',
             lineHeight: '1.1'
           }}>
-            Descubriendo <span style={{ color: isVenezuelaState ? '#22c55e' : 'var(--primary)' }}>{pais}</span>
+            Descubriendo <span style={{ color: 'var(--primary)' }}>{pais}</span>
           </h1>
           
           <p style={{ 
             fontSize: '20px', 
-            color: 'var(--text-secondary)', 
+            color: 'var(--text-primary)', 
             maxWidth: '800px', 
             margin: '0 auto',
             lineHeight: '1.6',
-            fontWeight: '500'
+            fontWeight: '600'
           }}>
             {isVenezuelaState 
               ? `Explora la riqueza culinaria del estado ${pais}. Como buena abuela venezolana, te guiaré por sus sabores más auténticos.`
@@ -149,15 +154,15 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
           position: 'relative'
         }}>
           <div style={{
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: '#ffffff',
             backdropFilter: 'blur(40px)',
             borderRadius: '100px',
             padding: '10px 10px 10px 35px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            border: '1px solid var(--glass-border)',
             display: 'flex',
             alignItems: 'center',
             gap: '20px',
-            boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
+            boxShadow: 'var(--glass-shadow)'
           }}>
             <span style={{ fontSize: '24px' }}>🍳</span>
             <input
@@ -171,7 +176,7 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
                 background: 'transparent', 
                 border: 'none', 
                 outline: 'none', 
-                color: 'white', 
+                color: 'var(--text-primary)', 
                 fontSize: '18px', 
                 fontWeight: '500'
               }}
@@ -185,8 +190,8 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
                 borderRadius: '100px',
                 fontSize: '15px',
                 fontWeight: '800',
-                background: isLocked ? 'rgba(255,255,255,0.1)' : (isVenezuelaState ? '#22c55e' : undefined),
-                boxShadow: isLocked ? 'none' : (isVenezuelaState ? '0 10px 30px rgba(34, 197, 94, 0.3)' : undefined),
+                background: isLocked ? 'rgba(0,0,0,0.05)' : 'var(--primary)',
+                boxShadow: isLocked ? 'none' : '0 8px 20px rgba(46, 125, 94, 0.25)',
                 opacity: isLocked ? 0.6 : 1,
                 color: isLocked ? 'rgba(255,255,255,0.4)' : 'white'
               }}>
@@ -199,7 +204,7 @@ const CountryExplorationView = ({ pais, tipoLugar, prompt, setPrompt, generarRec
         <div style={{ textAlign: 'center' }}>
           <div style={{ 
             fontSize: '11px', 
-            color: 'rgba(255,255,255,0.4)', 
+            color: 'var(--text-muted)', 
             fontWeight: '800', 
             textTransform: 'uppercase', 
             letterSpacing: '0.2em',

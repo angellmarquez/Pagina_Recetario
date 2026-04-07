@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { generarPlanIA } from '../services/aiService';
+import { generarPlanIA, generarEsqueletoSemanalIA } from '../services/aiService';
 import { apiGuardarReceta } from '../services/apiService';
 import CinematicLoader from '../components/CinematicLoader';
 import './PlanSemanal.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+function getAuthHeaders() {
+    const token = localStorage.getItem('venia_token');
+    return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+}
 
 const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIAUntil, onRateLimit }) => {
   const [fechaActual, setFechaActual] = useState(new Date());
@@ -56,6 +62,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
       d.setDate(monday.getDate() + i);
       return {
         name: d.toLocaleDateString('es-VE', { weekday: 'short' }),
+        longName: d.toLocaleDateString('es-VE', { weekday: 'long' }).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(),
         date: d.getDate(),
         isToday: d.toDateString() === fechaActual.toDateString(),
         fullDate: d
@@ -79,6 +86,22 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
   const [promptAdicional, setPromptAdicional] = useState('');
   const [cargando, setCargando] = useState(false);
   const [planIA, setPlanIA] = useState(null);
+  const [planSemanalSkeleto, setPlanSemanalSkeleto] = useState(null);
+  const [botActivo, setBotActivo] = useState(false);
+
+  useEffect(() => {
+    if (usuario?.id_usuario) {
+      fetch(`${API_BASE_URL}/bot/estado/${usuario.id_usuario}`, { headers: getAuthHeaders() })
+        .then(r => r.json())
+        .then(data => {
+           if (data.success && data.estado === 'activa') {
+             setBotActivo(true);
+             if (data.planEsqueleto) setPlanSemanalSkeleto(data.planEsqueleto);
+           }
+        })
+        .catch(e => console.error("Error obteniendo estado bot:", e));
+    }
+  }, [usuario]);
   const [errorPlan, setErrorPlan] = useState('');
   const [selectedMeal, setSelectedMeal] = useState(prioridad);
   const [autoSentWasap, setAutoSentWasap] = useState(false);
@@ -109,9 +132,9 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
       `*¡Que lo disfrutes, ${usuario.nombre || 'Gourmet'}!*`;
 
     try {
-      await fetch('http://localhost:3000/api/whatsapp/enviar', {
+      await fetch(`${API_BASE_URL}/whatsapp/enviar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ telefonoDestino: usuario.telefono, mensaje: textoMensaje })
       });
       setAutoSentWasap(true);
@@ -156,6 +179,77 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
       .catch(() => { setErrorPlan('Error al guardar.'); });
   };
 
+  const cancelarPlanSemanal = async () => {
+    setCargando(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/bot/desuscribir`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id_usuario: usuario.id_usuario })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBotActivo(false);
+        setPlanSemanalSkeleto(null);
+        setAutoSentWasap(false);
+        if (addNotification) addNotification('Cancelado', 'Ya no recibirás recetas automáticas esta semana.', 'info');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const activarPlanSemanal = async () => {
+    if (!usuario?.telefono) {
+      setErrorPlan('Debes tener un número de teléfono registrado en tu perfil para usar el programa semanal por WhatsApp.');
+      return;
+    }
+    setCargando(true);
+    try {
+      const activeTags = dietaryStyle.filter(t => t.activo).map(t => t.nombre);
+      const promptAdicionalFinal = promptAdicional || '';
+      const dietaFinal = activeTags.join(', ');
+
+      // 1. Generamos el esqueleto rápido de la semana usando la IA
+      const esqueleto = await generarEsqueletoSemanalIA({
+        promptAdicional: promptAdicionalFinal,
+        dieta: dietaFinal,
+        numPersonas,
+        nombre: usuario.nombre
+      });
+
+      setPlanSemanalSkeleto(esqueleto); // Populate calendar visual
+
+      // 2. Enviamos el esqueleto al Backend para activar el envio programado de Wasap
+      const res = await fetch(`${API_BASE_URL}/bot/suscribir`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ 
+          id_usuario: usuario.id_usuario, 
+          dieta: dietaFinal, 
+          numPersonas, 
+          promptAdicional: promptAdicionalFinal,
+          planEsqueleto: JSON.stringify(esqueleto)
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAutoSentWasap(true);
+        setBotActivo(true);
+        if (addNotification) addNotification('Suscripción Activa', 'Recibirás tus comidas a su hora respectiva por WhatsApp.', 'success');
+      } else {
+        setErrorPlan(data.mensaje || 'Error al conectar con el servidor.');
+      }
+    } catch (e) {
+      setErrorPlan('Error conectando con la IA o el Servidor.');
+      console.error(e);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <div className="plan-semanal-container">
       <CinematicLoader visible={cargando} />
@@ -179,7 +273,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
           >
             <div style={{ fontSize: '70px', marginBottom: '20px' }}>👵🏽</div>
             <h3 style={{ fontSize: '32px', color: '#EF4444', marginBottom: '20px', fontWeight: '900', letterSpacing: '-1px' }}>¡Mijo, así no se puede!</h3>
-            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'white', opacity: 0.9, fontWeight: '500' }}>{errorPlan}</p>
+            <p style={{ fontSize: '20px', lineHeight: '1.6', color: 'var(--text-primary)', opacity: 0.9, fontWeight: '500' }}>{errorPlan}</p>
             <button 
               className="btn-gold" 
               onClick={() => setErrorPlan('')}
@@ -206,9 +300,21 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
           <h1 className="hero-main-title">Plan <span>Nutricional</span> Profesional</h1>
           <p className="hero-tagline">Entrega automatizada. Recetas tradicionales. Personalizado para ti.</p>
         </div>
-        <button onClick={generarPlan} disabled={cargando || (lockIAUntil && Date.now() < lockIAUntil)} className="btn-premium-action btn-generate-main">
-          <span>{lockIAUntil && Date.now() < lockIAUntil ? '⏳' : '✨'}</span> {cargando ? 'Cocinando...' : (lockIAUntil && Date.now() < lockIAUntil ? 'Esperando...' : 'Crear y Enviar Plan')}
-        </button>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <button onClick={generarPlan} disabled={cargando || (lockIAUntil && Date.now() < lockIAUntil)} className="btn-secondary-premium">
+            <span>{lockIAUntil && Date.now() < lockIAUntil ? '⏳' : '☀️'}</span> {cargando ? 'Cocinando...' : 'Plan de Hoy (Diario)'}
+          </button>
+          
+          {botActivo ? (
+            <button onClick={cancelarPlanSemanal} disabled={cargando} className="btn-premium-action btn-generate-main" style={{ background: 'rgba(255, 50, 50, 0.2)', border: '1px solid rgba(255, 50, 50, 0.5)' }}>
+              <span>❌</span> Cancelar Plan Semanal
+            </button>
+          ) : (
+            <button onClick={activarPlanSemanal} disabled={cargando} className="btn-premium-action btn-generate-main">
+              <span>🤖</span> Programar Semana
+            </button>
+          )}
+        </div>
       </header>
 
       <section className="config-dashboard stagger-2">
@@ -217,7 +323,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
           <div className="portion-stepper">
             <button className="stepper-btn" onClick={() => setNumPersonas(Math.max(1, numPersonas - 1))}>-</button>
             <span className="stepper-value">{numPersonas.toString().padStart(2, '0')}</span>
-            <button className="stepper-btn" onClick={() => setNumPersonas(numPersonas + 1)}>+</button>
+            <button className="stepper-btn" onClick={() => setNumPersonas(Math.min(6, numPersonas + 1))} disabled={numPersonas >= 6}>+</button>
           </div>
         </div>
         <div className="config-card">
@@ -250,7 +356,7 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
       {planIA && (
         <div className="automation-banner stagger-2" style={{
            background: autoSentWasap ? 'rgba(37, 211, 102, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-           border: autoSentWasap ? '1px solid #25D366' : '1px solid rgba(255, 255, 255, 0.1)',
+           border: autoSentWasap ? '1px solid #25D366' : '1px solid rgba(0,0,0,0.05)',
            color: autoSentWasap ? '#25D366' : 'white'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
@@ -280,7 +386,10 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
               <span className="day-number">{dia.date.toString().padStart(2, '0')}</span>
               <div className="meal-status-column">
                 {['desayuno', 'almuerzo', 'cena'].map(tipo => {
-                  const title = dia.isToday && planIA?.comidas?.[tipo]?.nombre;
+                  let title = dia.isToday && planIA?.comidas?.[tipo]?.nombre;
+                  if (!title && planSemanalSkeleto) {
+                     title = planSemanalSkeleto[dia.longName]?.[tipo];
+                  }
                   const icon = tipo === 'desayuno' ? '🌅' : tipo === 'almuerzo' ? '☀️' : '🌙';
                   return (
                     <div key={tipo} className={`meal-slot-premium ${title ? 'active' : ''}`}>
@@ -295,44 +404,69 @@ const PlanSemanalView = ({ usuario, addNotification, onActualizarUsuario, lockIA
         </div>
 
         {showDetails && planIA && (
-          <div className="recipe-masterpiece stagger-4">
+          <div className={`recipe-masterpiece stagger-4 is-${selectedMeal}`}>
             <div className="recipe-tabs">
               {['desayuno', 'almuerzo', 'cena'].map(t => (
                 <button key={t} onClick={() => setSelectedMeal(t)} className={`recipe-tab-btn ${selectedMeal === t ? 'active' : ''}`}>{t.toUpperCase()}</button>
               ))}
             </div>
-            <div className="recipe-content-grid">
-               <div className="recipe-overview">
-                 <h2>{planIA.comidas[selectedMeal].nombre}</h2>
-                 <div className="recipe-meta-badges">
+            
+            <div className="recipe-card-frame">
+              <div className="recipe-content-grid">
+                <div className="recipe-overview">
+                  <span className="meal-type-tag">{selectedMeal === 'desayuno' ? '🌅 Desayuno Vital' : selectedMeal === 'almuerzo' ? '☀️ Almuerzo Principal' : '🌙 Cena Confort'}</span>
+                  <h2>{planIA.comidas[selectedMeal].nombre}</h2>
+                  
+                  <div className="recipe-meta-badges">
                     <div className="meta-badge">⏱️ {planIA.comidas[selectedMeal].tiempo || '30 min'}</div>
                     <div className="meta-badge">👨‍👩‍👧‍👦 {numPersonas} Pax</div>
-                 </div>
-                 <p className="recipe-story">{planIA.metadatos?.mensaje_abuela}</p>
-                 <button 
-                  onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} 
-                  disabled={savedMeals[selectedMeal]}
-                  className="btn-premium-action btn-generate-main" 
-                  style={{ width: '100%', justifyContent: 'center', opacity: savedMeals[selectedMeal] ? 0.7 : 1 }}
-                 >
-                   {savedMeals[selectedMeal] ? '✅ Receta Guardada' : '💾 Guardar Obra Maestra'}
-                 </button>
-               </div>
-               <div className="recipe-details">
-                  <h4 className="section-title-premium">Ingredientes Magistrales</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 40px', marginBottom: '40px' }}>
-                    {planIA.comidas[selectedMeal].ingredientes?.map((ing, i) => <div key={i} className="ingredient-item-premium">✓ {ing}</div>)}
                   </div>
-                  <h4 className="section-title-premium">Método de Preparación</h4>
-                  <div className="steps-container">
-                    {planIA.comidas[selectedMeal].pasos?.map((p, i) => (
-                      <div key={i} className="step-card-premium">
-                        <div className="step-number">{i+1}</div>
-                        <div className="step-text">{p}</div>
-                      </div>
-                    ))}
+                  
+                  <div className="note-from-chef">
+                    <div className="chef-signature">👵🏽 Mensaje de la Abuela:</div>
+                    <p className="recipe-story">"{planIA.metadatos?.mensaje_abuela}"</p>
                   </div>
-               </div>
+
+                  <button 
+                    onClick={() => guardarReceta(selectedMeal, planIA.comidas[selectedMeal])} 
+                    disabled={savedMeals[selectedMeal]}
+                    className="btn-premium-save"
+                  >
+                    {savedMeals[selectedMeal] ? '✅ Receta Guardada' : '💾 Guardar Obra Maestra'}
+                  </button>
+                </div>
+
+                <div className="recipe-details">
+                  <div className="section-group">
+                    <h4 className="section-title-premium">
+                      <span>Ingredientes Magistrales</span>
+                      <div className="title-line"></div>
+                    </h4>
+                    <div className="ingredients-grid">
+                      {planIA.comidas[selectedMeal].ingredientes?.map((ing, i) => (
+                        <div key={i} className="ingredient-item-premium">
+                          <span className="check-icon">✓</span> {ing}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="section-group">
+                    <h4 className="section-title-premium">
+                      <span>Método de Preparación</span>
+                      <div className="title-line"></div>
+                    </h4>
+                    <div className="steps-timeline">
+                      {planIA.comidas[selectedMeal].pasos?.map((p, i) => (
+                        <div key={i} className="step-card-premium">
+                          <div className="step-number-bubble">{i+1}</div>
+                          <div className="step-text-content">{p}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

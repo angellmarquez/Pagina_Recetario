@@ -8,7 +8,7 @@ const NotificationsPanel = ({ abierto, onCerrar, notificaciones }) => {
     switch (tipo) {
       case 'success': return <CheckCircle size={20} color="#4caf50" />;
       case 'whatsapp': return <MessageCircle size={20} color="#25D366" />;
-      default: return <Info size={20} color="#FFD700" />;
+      default: return <Info size={20} color="#2e7d5e" />;
     }
   };
 
@@ -30,12 +30,12 @@ const NotificationsPanel = ({ abierto, onCerrar, notificaciones }) => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h2 style={{ color: 'white', margin: 0, fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Bell color="#FFD700" size={28} /> Notificaciones
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Bell color="#2e7d5e" size={28} /> Notificaciones
             </h2>
             <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Mantente al tanto de tus acciones</p>
           </div>
-          <button onClick={onCerrar} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <button onClick={onCerrar} style={{ background: 'rgba(0,0,0,0.03)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, paddingRight: '5px' }}>
@@ -56,13 +56,13 @@ const NotificationsPanel = ({ abierto, onCerrar, notificaciones }) => {
                   }}
                 >
                   <div style={{ 
-                    minWidth: '40px', height: '40px', background: 'rgba(255,255,255,0.05)', 
+                    minWidth: '40px', height: '40px', background: 'rgba(0,0,0,0.03)', 
                     borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' 
                   }}>
                     {getIcon(notif.tipo)}
                   </div>
                   <div>
-                    <h4 style={{ color: 'white', margin: '0 0 5px 0', fontSize: '15px', fontWeight: '700' }}>{notif.titulo}</h4>
+                    <h4 style={{ color: 'var(--text-primary)', margin: '0 0 5px 0', fontSize: '15px', fontWeight: '700' }}>{notif.titulo}</h4>
                     <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0, lineHeight: '1.4' }}>{notif.mensaje}</p>
                     <small style={{ color: 'var(--primary)', fontSize: '11px', display: 'block', marginTop: '8px', fontWeight: '600' }}>
                       {notif.fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

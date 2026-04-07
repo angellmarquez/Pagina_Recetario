@@ -32,7 +32,7 @@ const TimerIA = ({ segundos }) => {
       <div style={{ position: 'relative', width: '40px', height: '40px' }}>
         <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
           <circle 
-            cx="18" cy="18" r="16" fill="none" stroke="rgba(245, 158, 11, 0.2)" strokeWidth="3" 
+            cx="18" cy="18" r="16" fill="none" stroke="rgba(46, 125, 94, 0.2)" strokeWidth="3" 
           />
           <circle 
             cx="18" cy="18" r="16" fill="none" stroke="var(--primary)" strokeWidth="3" 
@@ -50,7 +50,7 @@ const TimerIA = ({ segundos }) => {
         <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>
           La Abuela descansa
         </span>
-        <span style={{ fontSize: '24px', fontWeight: '900', color: 'white', fontFamily: 'monospace' }}>
+        <span style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
           {formatTime(segundos)}
         </span>
       </div>

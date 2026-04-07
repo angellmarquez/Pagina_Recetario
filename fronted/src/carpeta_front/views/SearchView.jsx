@@ -1,5 +1,4 @@
 import React from 'react';
-import arepaBg from '../../assets/arepas-4.jpg';
 import RecipeImage from '../components/RecipeImage';
 
 // Helper to get a professional image for Venezuelan dishes
@@ -24,194 +23,161 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
   };
 
   return (
-    <div className="stagger-1" style={{ 
-      width: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center',
-      padding: '40px 0 100px 0',
-      position: 'relative',
-      minHeight: '800px',
-      justifyContent: 'flex-start',
-      borderRadius: '40px',
-      overflow: 'hidden',
-      marginTop: '20px'
-    }}>
-      
-      {/* Background Image with Cinematic Zoom Overlay */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundImage: `url(${arepaBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        zIndex: -1,
-        transform: prompt ? 'scale(1.15)' : 'scale(1.1)',
-        filter: 'brightness(0.5) saturate(1.1)',
-        transition: 'transform 2s ease, filter 2s ease'
-      }}></div>
-      
-      {/* Cinematic Vignette & Gradient Overlays */}
-      <div className="vignette-layer"></div>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'radial-gradient(circle at 50% 50%, rgba(10, 15, 29, 0.1) 0%, rgba(10, 15, 29, 0.9) 100%)',
-        zIndex: -1
-      }}></div>
+    <div className="stagger-1" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-      {/* Hero Content Card */}
-      <div className="glass-panel-premium stagger-2" style={{ 
-        width: '95%', 
-        maxWidth: '850px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
+      {/* ─── HERO SECTION — Clean Vichy, no food background ─── */}
+      <div style={{
+        width: '100%',
         position: 'relative',
-        zIndex: 10,
-        padding: '60px',
-        boxShadow: '0 50px 100px rgba(0,0,0,0.8)'
+        borderRadius: '32px',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, var(--surface-bright) 0%, var(--surface) 100%)',
+        backgroundImage: 'none',
+        border: '1.5px solid var(--glass-border)',
+        padding: '72px 60px 64px',
+        marginBottom: '48px',
+        boxShadow: '0 30px 60px rgba(30, 58, 95, 0.08)'
       }}>
-        
-        {/* Animated Badge */}
-        <div className="hero-badge-premium">
-          <span style={{ fontSize: '14px' }}>✨</span> {isNevera ? 'Tradición e Innovación' : 'Herencia Venezolana'}
+        {/* Decorative blobs */}
+        <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', left: '-40px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,58,95,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        {/* Decorative food icons top-right */}
+        <div style={{ position: 'absolute', top: '24px', right: '40px', display: 'flex', gap: '12px', opacity: 0.18, fontSize: '40px', pointerEvents: 'none' }}>
+          <span>🫕</span><span>🌿</span><span>🍋</span>
         </div>
 
-        <div>
-          <h1 className="hero-title" style={{ 
-            fontSize: 'clamp(44px, 7vw, 84px)', 
-            textAlign: 'left', 
-            marginBottom: '20px',
-            textShadow: '0 0 50px rgba(0,0,0,1)',
-            letterSpacing: '-2px'
-          }}>
-            {isNevera ? 'Explorar ' : 'Buscar '}
-            <span style={{ color: 'var(--primary)', fontStyle: 'italic' }}>{isNevera ? 'Recetas' : 'Sabores'}</span>
-          </h1>
-          
-          <p className="hero-subtitle" style={{ 
-            fontSize: '20px', 
-            opacity: 0.8, 
-            textAlign: 'left', 
-            marginBottom: '10px',
-            maxWidth: '650px',
-            lineHeight: '1.4',
-            fontWeight: '500'
-          }}>
-            {isNevera 
-              ? "Dime qué ingredientes tienes y mi IA creará una obra maestra culinaria para ti."
-              : "Busca los platos más emblemáticos de Venezuela y aprende a prepararlos con amor."}
-          </p>
+        {/* Badge */}
+        <div className="hero-badge-premium" style={{ marginBottom: '24px' }}>
+          <span style={{ fontSize: '14px' }}>✦</span>
+          {isNevera ? 'Tradición e Innovación' : 'Herencia Venezolana'}
         </div>
 
-        {/* Premium Search Experience */}
-        <div className="glass-input-wrapper">
-          <span style={{ fontSize: '24px', opacity: 0.6 }}>🔍</span>
+        {/* Title */}
+        <h1 style={{
+          fontSize: 'clamp(40px, 5vw, 68px)',
+          fontWeight: '900',
+          letterSpacing: '-2px',
+          lineHeight: '1.05',
+          margin: '0 0 16px',
+          color: 'var(--text-primary)',
+          maxWidth: '700px'
+        }}>
+          {isNevera ? 'Explorar ' : 'Buscar '}
+          <span style={{ color: 'var(--primary)' }}>{isNevera ? 'Recetas' : 'Sabores'}</span>
+        </h1>
+
+        <p style={{
+          fontSize: '18px',
+          color: 'var(--text-primary)',
+          marginBottom: '40px',
+          maxWidth: '560px',
+          lineHeight: '1.6',
+          fontWeight: '600'
+        }}>
+          {isNevera
+            ? 'Dime qué ingredientes tienes y mi IA creará una obra maestra culinaria para ti.'
+            : 'Busca los platos más emblemáticos de Venezuela y aprende a prepararlos con amor.'}
+        </p>
+
+        {/* Search Input */}
+        <div className="glass-input-wrapper" style={{ maxWidth: '700px', background: '#ffffff', border: '1.5px solid var(--glass-border)' }}>
+          <span style={{ fontSize: '20px', opacity: 0.5 }}>🔍</span>
           <input
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !cargando) handleSearch(); }}
-            placeholder={isNevera ? "Tengo pollo, aguacate, cebolla..." : "Pabellón, Arepas, Asado Negro..."}
-            style={{ 
-              flex: 1, 
-              background: 'transparent', 
-              border: 'none', 
-              outline: 'none', 
-              color: 'white', 
-              fontSize: '20px', 
-              padding: '16px 0',
-              fontWeight: '500'
+            placeholder={isNevera ? 'Tengo pollo, aguacate, cebolla...' : 'Pabellón, Arepas, Asado Negro...'}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              color: 'var(--text-primary)',
+              fontSize: '18px',
+              padding: '14px 0',
+              fontWeight: '500',
+              fontFamily: 'var(--font-body)'
             }}
           />
-          <button 
+          <button
             className="btn-gold"
-            onClick={() => handleSearch()} 
-            disabled={cargando || !prompt || isLocked} 
-            style={{ 
-              padding: '16px 45px',
-              borderRadius: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              fontSize: '18px',
-              boxShadow: isLocked ? 'none' : '0 15px 40px rgba(245, 158, 11, 0.4)',
-              opacity: isLocked ? 0.6 : 1,
-              background: isLocked ? 'rgba(255,255,255,0.1)' : 'var(--primary)',
-              color: isLocked ? 'var(--text-muted)' : 'var(--on-primary)'
+            onClick={() => handleSearch()}
+            disabled={cargando || !prompt || isLocked}
+            style={{
+              padding: '14px 36px',
+              borderRadius: '16px',
+              fontSize: '16px',
+              fontWeight: '800',
+              background: isLocked ? '#e8e0d5' : 'var(--primary)',
+              color: isLocked ? 'var(--text-muted)' : 'var(--on-primary)',
+              boxShadow: isLocked ? 'none' : '0 4px 16px rgba(46, 125, 94, 0.25)',
+              opacity: isLocked ? 0.7 : 1,
+              border: 'none',
+              cursor: isLocked ? 'not-allowed' : 'pointer'
             }}>
-            <span>{cargando ? '⏳' : (isLocked ? '🔒' : '✦')}</span> {cargando ? 'Cocinando...' : (isLocked ? 'Esperando...' : 'Cocinar')}
+            {cargando ? '⏳ Cocinando...' : isLocked ? '🔒 Espera' : '✦ Cocinar'}
           </button>
         </div>
 
-        {/* Suggested Tags (Inspirations) */}
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '10px' }}>
-          <span style={{ 
-            fontSize: '11px', 
-            color: 'rgba(255,255,255,0.4)', 
-            fontWeight: '900', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.25em' 
-          }}>RECOMENDACIONES DEL CHEF:</span>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {['Pabellón', 'Cachapas', 'Arepa Pelúa'].map(chip => (
-              <button 
-                key={chip} 
-                className="suggested-tag-premium"
-                onClick={() => { setPrompt(chip); handleSearch(chip); }} 
-                style={{ fontSize: '11px', padding: '6px 14px' }}
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
+        {/* Suggestion chips */}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+            Sugerencias:
+          </span>
+          {['Pabellón', 'Cachapas', 'Arepa Pelúa'].map(chip => (
+            <button
+              key={chip}
+              className="suggested-tag-premium"
+              onClick={() => { setPrompt(chip); handleSearch(chip); }}
+              style={{ fontSize: '12px', padding: '7px 16px', background: '#ffffff', border: '1px solid var(--outline-variant)', color: 'var(--text-secondary)', borderRadius: '20px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--outline-variant)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              {chip}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Recent Discoveries History Section - EXCLUSIVE TO NEVERA */}
+      {/* ─── RECENT DISCOVERIES (Nevera only) ─── */}
       {isNevera && recentRecipes.length > 0 && (
-        <div className="history-section" style={{ maxWidth: '1200px', padding: '0 20px' }}>
+        <div className="history-section" style={{ maxWidth: '1200px', width: '100%', padding: '0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px' }}>
             <div>
-              <span className="hero-badge-premium" style={{ marginBottom: '10px' }}>Tradición e Innovación</span>
-              <h2 style={{ fontSize: '48px', fontWeight: '900', margin: 0, letterSpacing: '-1px' }}>Obras Maestras <span>Recientes</span></h2>
+              <span className="hero-badge-premium" style={{ marginBottom: '10px', display: 'inline-flex' }}>Tradición e Innovación</span>
+              <h2 style={{ fontSize: '40px', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text-primary)' }}>
+                Obras Maestras <span style={{ color: 'var(--primary)' }}>Recientes</span>
+              </h2>
             </div>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-               <button 
+              <button
                 onClick={onClearHistory}
-                style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '11px', cursor: 'pointer', fontWeight: '800', letterSpacing: '0.1em' }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em' }}
               >
                 LIMPIAR TODO
               </button>
-              <span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '14px', cursor: 'pointer' }}>Ver Historial Completo →</span>
             </div>
           </div>
-          
+
           <div className="history-grid-cinematic">
             {recentRecipes.map((recipe, i) => (
-              <div 
-                key={`${recipe.titulo}-${i}`} 
+              <div
+                key={`${recipe.titulo}-${i}`}
                 className="recipe-card-cinematic stagger-3"
                 onClick={() => onSelectRecipe(recipe)}
               >
                 <div className="recipe-image-container">
-                  <RecipeImage 
-                    query={recipe.titulo} 
-                    origin={isNevera ? 'venezuela' : 'region'} 
-                    alt={recipe.titulo} 
+                  <RecipeImage
+                    query={recipe.titulo}
+                    origin={isNevera ? 'venezuela' : 'region'}
+                    alt={recipe.titulo}
                   />
                   <div className="floating-badge badge-left">SIGNATURE</div>
                   <div className="floating-badge badge-right">CHEF'S CHOICE</div>
                 </div>
-                
+
                 <div className="recipe-body-premium">
                   <div className="recipe-title-cinematic">
                     {recipe.titulo}
@@ -219,11 +185,11 @@ const SearchView = ({ prompt, setPrompt, generarReceta, cargando, seccionActiva,
                       <span>⏱️</span> {recipe.tiempo || '45 min'}
                     </div>
                   </div>
-                  
+
                   <p className="recipe-description-cinematic">
-                    {recipe.historia || "Una obra maestra de nuestra cocina tradicional venezolana, preparada con el toque secreto de la abuela."}
+                    {recipe.historia || 'Una obra maestra de nuestra cocina tradicional venezolana, preparada con el toque secreto de la abuela.'}
                   </p>
-                  
+
                   <div className="recipe-footer-tags">
                     {recipe.tags && recipe.tags.slice(0, 2).map((t, idx) => (
                       <span key={idx}>{t}</span>

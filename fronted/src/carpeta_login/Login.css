@@ -1,21 +1,25 @@
+/* Login.css — VenIA Premium Auth Styles */
+
 .login-pantalla {
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 0%, transparent 35%),
-              radial-gradient(circle at 100% 100%, rgba(239, 51, 64, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 50% 50%, rgba(0, 56, 147, 0.15) 0%, #020617 100%);
+  background: var(--surface);
+  background: radial-gradient(circle at 0% 0%, rgba(46, 125, 94, 0.1) 0%, transparent 40%),
+              radial-gradient(circle at 100% 100%, rgba(30, 58, 95, 0.08) 0%, transparent 40%),
+              linear-gradient(135deg, #f9f6f1 0%, #ffffff 50%, #f3ede4 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   overflow: hidden;
+  position: relative;
 }
 
-/* ... existing .login-card-container, .login-card-bg, .login-card-content, .login-title ... */
 .login-card-container {
-  width: 420px;
+  width: 440px;
   position: relative;
   z-index: 10;
+  animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .login-card-bg {
@@ -24,37 +28,57 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 35px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: 40px;
+  box-shadow: 0 40px 100px rgba(30, 58, 95, 0.12);
 }
 
 .login-card-content {
   position: relative;
   z-index: 20;
   width: 100%;
+  padding: 60px 48px;
+  box-sizing: border-box;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-logo-wrapper {
+  background: var(--primary);
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 50px 40px;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 20px rgba(46, 125, 94, 0.2);
 }
 
 .login-title {
-  color: #FFD700;
-  font-size: 32px;
+  color: var(--secondary);
+  font-family: var(--font-display);
+  font-size: 36px;
   font-weight: 900;
   margin: 0;
-  letter-spacing: -1px;
+  letter-spacing: -2px;
+}
+
+.login-title span {
+  color: var(--primary);
 }
 
 .login-subtitle {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: 15px;
   margin-top: 8px;
-  margin-bottom: 40px;
+  font-weight: 500;
 }
 
 .login-form {
@@ -63,91 +87,210 @@
   width: 100%;
 }
 
+.input-field-wrapper {
+  margin-bottom: 24px;
+}
+
+.input-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .input-group {
   position: relative;
   width: 100%;
-  height: 55px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 100%; /* Safety lock */
+  min-width: 0; /* Prevents overflow in grid */
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--outline);
   border-radius: 16px;
-  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
+  overflow: hidden; /* Ensures child elements don't bleed out */
+  box-sizing: border-box;
 }
 
 .input-group:focus-within {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #FFD700;
-  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
+  background: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(46, 125, 94, 0.1);
 }
 
 .input-icon {
-  width: 50px;
-  height: 100%;
+  width: 54px;
+  height: 55px;
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0.5;
+  color: var(--primary);
+  opacity: 0.8;
 }
 
 .login-input {
   flex: 1;
-  height: 100%;
+  min-width: 0; /* Crucial for flex shrinking */
+  width: 100%;
+  height: 55px;
   border: none;
   outline: none;
   background: transparent;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  color: white;
-  padding-right: 20px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--text-primary);
+  padding-right: 10px; /* Reduced to help with space */
+  font-weight: 500;
 }
 
 .login-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
+}
+
+.password-toggle {
+  background: none;
+  border: none;
+  padding: 0 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+  flex-shrink: 0;
+  width: 44px;
+  height: 55px;
+}
+
+.password-toggle:hover {
+  color: var(--primary);
+}
+
+.auth-error-msg {
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: -12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth-success-msg {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: -12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .login-btn {
   width: 100%;
-  height: 55px;
-  background: #FFD700;
-  border-radius: 16px;
-  color: #003893;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
+  height: 60px;
+  background: var(--primary);
+  border-radius: 18px;
+  color: var(--on-primary);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 900;
   border: none;
   cursor: pointer;
-  margin-top: 20px;
-  transition: all 0.3s ease;
+  margin-top: 10px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 15px 30px rgba(46, 125, 94, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(255, 215, 0, 0.4);
+  background: var(--primary-bright);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(46, 125, 94, 0.35);
+}
+
+.login-btn:active {
+  transform: scale(0.98);
 }
 
 .login-footer {
-  margin-top: 30px;
+  margin-top: 40px;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
 }
 
 .footer-text {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .footer-link {
-  color: #FFD700;
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--primary);
+  font-weight: 800;
   text-decoration: none;
   cursor: pointer;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .footer-link:hover {
+  text-decoration: underline;
   opacity: 0.8;
 }
 
+.forgot-password {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.forgot-password:hover {
+  opacity: 1;
+  color: var(--secondary);
+}
+
+/* Animations from index.css are reachable, 
+   but specific fadeInUp is defined here just in case */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .login-card-container {
+    width: 90%;
+  }
+  .login-card-content {
+    padding: 40px 24px;
+  }
+}
+
+/* Fix for Grid Overflow in Registration */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 400px) {
+  .grid-2-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.login-input {
+  min-width: 0; /* Prevents grid items from expanding beyond 1fr */
+}

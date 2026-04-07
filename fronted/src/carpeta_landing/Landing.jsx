@@ -1,144 +1,168 @@
-import React from 'react';
+import descubrirImg from '../assets/app_screenshots/descubrir.png';
+import buscarImg from '../assets/app_screenshots/buscar.png';
+import perfilImg from '../assets/app_screenshots/perfil.png';
+import { 
+  Soup, 
+  Refrigerator, 
+  ArrowRight, 
+  ChevronRight, 
+  Sparkles,
+  History,
+  Globe
+} from 'lucide-react';
 import './Landing.css';
 
 const Landing = ({ onLogin, onRegistro }) => {
   return (
     <div className="landing-container">
-      {/* Navbar Minimalista */}
+      {/* Navbar Minimalista Premium Flourish */}
       <nav className="landing-nav">
         <div className="logo-container">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="#003893">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
+          <div className="logo-icon-wrapper">
+            <Soup size={24} color="#ffffff" strokeWidth={2.5} />
           </div>
-          <span className="logo-text-ven">VEN</span><span className="logo-text-ia">IA</span>
+          <span className="logo-text">
+            <span className="logo-text-ven">VEN</span>
+            <span className="logo-text-ia">IA</span>
+          </span>
         </div>
+        
+        <div className="nav-links">
+          <a className="nav-item" onClick={onLogin}>Descubrir</a>
+          <a className="nav-item" onClick={onLogin}>Nevera</a>
+          <a className="nav-item" onClick={onLogin}>Regiones</a>
+        </div>
+
         <div className="nav-buttons">
-          <button className="btn-login-outline" onClick={onLogin}>Iniciar Sesión</button>
+          <button className="btn-login-outline" onClick={onLogin}>
+            Iniciar Sesión
+          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section Re-imaginada con Mockup */}
       <main className="hero-section">
-        <div className="hero-content">
-          <div className="badge-beta">🚀 Plataforma en Fase Beta</div>
-          <h1 className="hero-title">El sazón de la <span className="highlight">abuela</span>,<br/>ahora con Inteligencia Artificial.</h1>
+        <div className="hero-content stagger-1">
+          <div className="hero-badge-premium">
+            <Sparkles size={14} />
+            <span>La evolución de la cocina criolla</span>
+          </div>
+          <h1 className="hero-title">
+            El sazón de la <span className="highlight">abuela</span>,<br/>
+            con mente <span className="highlight-alt">artificial</span>.
+          </h1>
           <p className="hero-subtitle">
             Descubre, crea y guarda miles de recetas auténticas venezolanas. 
-            Dile qué tienes en la nevera y VENIA cocinará la magia por ti.
+            Dile qué tienes en la nevera y deja que nuestra IA diseñe el menú perfecto por ti.
           </p>
           <div className="hero-actions">
-            <button className="btn-primary-large" onClick={onRegistro}>
-              Comenzar Gratis Ahora
+            <button className="btn-gold-large" onClick={onRegistro}>
+              Comenzar gratis <ArrowRight size={18} />
             </button>
-            <button className="btn-secondary-large" onClick={onLogin}>
+            <button className="btn-ghost-large" onClick={onLogin}>
               Ya tengo cuenta
             </button>
           </div>
         </div>
+
+        <div className="hero-mockup-container stagger-2">
+          <img src={descubrirImg} alt="App Preview" className="hero-mockup" />
+        </div>
         
-        {/* Floating background elements */}
+        {/* Elementos decorativos de fondo */}
         <div className="blob-1"></div>
         <div className="blob-2"></div>
       </main>
 
-      {/* Features Section */}
+      {/* Features Grid Refinado */}
       <section className="features-section">
-        <div className="feature-card">
-          <div className="feature-icon">🇻🇪</div>
+        <div className="feature-card glass-card stagger-2">
+          <div className="feature-icon-box">
+            <Globe className="icon-sage" size={32} />
+          </div>
           <h3>100% Venezolano</h3>
-          <p>Desde un Pabellón Margariteño hasta una Pizca Andina. Las recetas que te genera VENIA son históricamente precisas y culturalmente exactas.</p>
+          <p>Desde un Pabellón Margariteño hasta una Pizca Andina. Recetas históricamente precisas y culturalmente exactas.</p>
         </div>
-        <div className="feature-card">
-          <div className="feature-icon">❄️</div>
-          <h3>Modo Nevera</h3>
-          <p>¿No sabes qué cocinar? Escribe los ingredientes que te sobran en la cocina y la abuela te diseñará una receta deliciosa para no desperdiciar nada.</p>
-        </div>
-        <div className="feature-card">
-          <div className="feature-icon">🧠</div>
-          <h3>IA Generativa</h3>
-          <p>Potenciado por el modelo Llama 3 ultrarrápido y un buscador global de imágenes 100% reales, para una experiencia interactiva sin igual.</p>
+        <div className="feature-card glass-card stagger-4">
+          <div className="feature-icon-box">
+            <History className="icon-sage" size={32} />
+          </div>
+          <h3>Tu Recetario Eterno</h3>
+          <p>Guarda tus creaciones favoritas en una biblioteca personal y tenlas siempre a mano con un solo click.</p>
         </div>
       </section>
 
-      {/* Showcase Section */}
+      {/* Showcase Section Visualmente Atractiva */}
       <section className="showcase-section">
-        <h2 className="showcase-title">Todo lo que necesitas en un solo lugar</h2>
+        <div className="section-header">
+          <h2 className="showcase-title">Arquitectura del Sabor</h2>
+          <p className="showcase-desc">Una suite completa de herramientas diseñadas para el foodie venezolano moderno.</p>
+        </div>
         
-        {/* Feature 1: Descubrir */}
-        <div className="showcase-row">
-          <div className="showcase-text">
-            <span className="showcase-badge">Explorar</span>
-            <h3>Feed "Descubrir"</h3>
-            <p>Una galería infinita de recomendaciones personalizadas. Desliza a través de platos típicos generados por Inteligencia Artificial y encuentra tu próxima comida favorita al instante.</p>
+        <div className="showcase-grid">
+          {/* Feature 1: Descubrir */}
+          <div className="showcase-item">
+            <div className="showcase-visual stagger-1">
+              <div className="image-wrapper">
+                <img src={descubrirImg} alt="Feed Descubrir" />
+                <div className="visual-overlay"></div>
+              </div>
+            </div>
+            <div className="showcase-info">
+              <span className="info-tag">Explorar</span>
+              <h3>Feed Inteligente</h3>
+              <p>Una galería infinita de recomendaciones personalizadas basadas en tus gustos regionales y preferencias dietéticas.</p>
+              <button className="text-btn" onClick={onRegistro}>Explorar feed <ChevronRight size={16} /></button>
+            </div>
           </div>
-          <div className="showcase-image">
-            <img src="/assets/feed.png" alt="Feed Descubrir" />
-          </div>
-        </div>
 
-        {/* Feature 2: Buscar */}
-        <div className="showcase-row reverse">
-          <div className="showcase-text">
-            <span className="showcase-badge">Búsqueda Inteligente</span>
-            <h3>Encuentra cualquier receta</h3>
-            <p>¿Se te antojó un Pabellón Margariteño o unas Cachapas con Queso de Mano? Escríbelo en el buscador y VENIA te entregará la receta exacta, paso a paso, con ingredientes precisos y una imagen real del plato.</p>
+          {/* Feature 2: Buscar Sabores (Nevera) */}
+          <div className="showcase-item reverse">
+            <div className="showcase-visual stagger-2">
+               <div className="image-wrapper">
+                <img src={buscarImg} alt="Buscador de Sabores" />
+                <div className="visual-overlay"></div>
+              </div>
+            </div>
+            <div className="showcase-info">
+              <span className="info-tag">Creatividad</span>
+              <h3>¿Qué hay en la nevera?</h3>
+              <p>Transforma ingredientes simples en platos extraordinarios. Nuestra IA optimiza tus ingredientes para encontrar el sabor perfecto.</p>
+              <button className="text-btn" onClick={onRegistro}>Probar buscador <ChevronRight size={16} /></button>
+            </div>
           </div>
-          <div className="showcase-image">
-            <img src="/assets/search.png" alt="Búsqueda Inteligente" />
-          </div>
-        </div>
 
-        {/* Feature 3: Nevera */}
-        <div className="showcase-row">
-          <div className="showcase-text">
-            <span className="showcase-badge">Ahorro y Creatividad</span>
-            <h3>¿Qué hay en la nevera?</h3>
-            <p>No más desperdicios. Ingresa los ingredientes que te sobran y la abuela VENIA diseñará una receta deliciosa usando exactamente lo que tienes a la mano.</p>
-          </div>
-          <div className="showcase-image">
-            <img src="/assets/fridge.png" alt="Modo Nevera" />
-          </div>
-        </div>
-
-        {/* Feature 4: Regiones */}
-        <div className="showcase-row reverse">
-          <div className="showcase-text">
-            <span className="showcase-badge">Cultura</span>
-            <h3>Búsqueda por Regiones</h3>
-            <p>Viaja gastronómicamente por toda Venezuela. Explora platos típicos desde los Andes hasta la costa oriental con nuestro explorador cultural interactivo.</p>
-          </div>
-          <div className="showcase-image showcase-placeholder">
-            <span style={{ fontSize: '80px' }}>🗺️</span>
-          </div>
-        </div>
-
-        {/* Feature 5: Menú Semanal */}
-        <div className="showcase-row">
-          <div className="showcase-text">
-            <span className="showcase-badge">Planificación</span>
-            <h3>Generador de Menú Semanal</h3>
-            <p>Organiza tu semana fácilmente. VENIA crea para ti un menú balanceado de Lunes a Domingo con desayunos, almuerzos y cenas variadas y 100% venezolanas.</p>
-          </div>
-          <div className="showcase-image">
-            <img src="/assets/menu_generator.png" alt="Menú Semanal" style={{ objectPosition: 'top' }} />
-          </div>
-        </div>
-
-        {/* Feature 6: Historial */}
-        <div className="showcase-row reverse">
-          <div className="showcase-text">
-            <span className="showcase-badge">Colección</span>
-            <h3>Historial y Guardadas</h3>
-            <p>Guarda tus recetas favoritas en tu perfil de VENIA para tenerlas siempre a mano. Nunca más perderás esa receta perfecta de las empanadas de cazón.</p>
-          </div>
-          <div className="showcase-image">
-            <img src="/assets/history.png" alt="Historial de recetas" />
+          {/* Feature 3: Perfil Personalizado */}
+          <div className="showcase-item">
+            <div className="showcase-visual stagger-3">
+               <div className="image-wrapper">
+                <img src={perfilImg} alt="Perfil de Usuario" />
+                <div className="visual-overlay"></div>
+              </div>
+            </div>
+            <div className="showcase-info">
+              <span className="info-tag">Personalización</span>
+              <h3>Tu Perfil Gourmet</h3>
+              <p>Gestiona tu información, tus platos guardados y personaliza tu experiencia culinaria desde un solo lugar.</p>
+              <button className="text-btn" onClick={onRegistro}>Configurar perfil <ChevronRight size={16} /></button>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Footer Minimalista */}
+      <footer className="landing-footer-simple">
+        <div className="footer-line"></div>
+        <div className="footer-content">
+          <div className="footer-brand">
+             <Soup size={20} className="icon-sage" />
+             <span>VenIA — El Sabor de Mañana</span>
+          </div>
+          <div className="footer-legal">
+            &copy; 2026 VenIA Recetario. Hecho con ❤️ para Venezuela.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

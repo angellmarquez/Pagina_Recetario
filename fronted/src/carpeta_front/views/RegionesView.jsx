@@ -29,19 +29,19 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
       
       <div className="stagger-1" style={{ display: 'flex', justifyContent: 'center', marginBottom: '60px' }}>
         <div style={{
-          background: 'rgba(15, 23, 42, 0.4)',
+          background: '#ffffff',
           backdropFilter: 'blur(20px)',
           padding: '8px',
           borderRadius: '100px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: '1px solid var(--glass-border)',
           display: 'flex',
           gap: '5px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          boxShadow: 'var(--glass-shadow)'
         }}>
-          <button onClick={() => setActiveTab('world')} style={{ padding: '12px 40px', borderRadius: '100px', fontSize: '15px', fontWeight: '800', background: activeTab === 'world' ? 'var(--primary)' : 'transparent', color: activeTab === 'world' ? 'var(--on-primary)' : 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer', transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '0.05em' }}>
+          <button onClick={() => setActiveTab('world')} style={{ padding: '12px 40px', borderRadius: '100px', fontSize: '15px', fontWeight: '800', background: activeTab === 'world' ? 'var(--primary)' : 'transparent', color: activeTab === 'world' ? 'var(--on-primary)' : 'var(--text-muted)', border: 'none', cursor: 'pointer', transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '0.05em' }}>
             <span style={{ fontSize: '18px' }}>🌍</span> EXPLORADOR MUNDIAL
           </button>
-          <button onClick={() => setActiveTab('venezuela')} style={{ padding: '12px 40px', borderRadius: '100px', fontSize: '15px', fontWeight: '800', background: activeTab === 'venezuela' ? '#22c55e' : 'transparent', color: activeTab === 'venezuela' ? 'white' : 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer', transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '0.05em' }}>
+          <button onClick={() => setActiveTab('venezuela')} style={{ padding: '12px 40px', borderRadius: '100px', fontSize: '15px', fontWeight: '800', background: activeTab === 'venezuela' ? 'var(--primary)' : 'transparent', color: activeTab === 'venezuela' ? 'var(--on-primary)' : 'var(--text-muted)', border: 'none', cursor: 'pointer', transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '0.05em' }}>
             <span style={{ fontSize: '18px' }}>🇻🇪</span> VENEZUELA
           </button>
         </div>
@@ -51,35 +51,39 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
       <div className="stagger-2 fade-in">
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <div className="hero-badge-premium" style={{ marginBottom: '20px' }}>✨ Gastronomía Sin Fronteras</div>
-          <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 15px', letterSpacing: '-2.5px', color: 'white', lineHeight: '1' }}>
-            Explora los Sabores del <span style={{ color: 'var(--primary)', textShadow: '0 0 40px rgba(245, 158, 11, 0.3)' }}>Mundo</span>
+          <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 15px', letterSpacing: '-2.5px', color: 'var(--text-primary)', lineHeight: '1' }}>
+            Explora los Sabores del <span style={{ color: 'var(--primary)' }}>Mundo</span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '20px', margin: '0 auto', maxWidth: '750px', lineHeight: '1.6' }}>
             Selecciona una región para descubrir los secretos culinarios mejor guardados de cada país.
           </p>
         </div>
 
+        {/* WORLD MAP — Vichy palette */}
         <div className="glass-panel-premium" style={{ 
-          padding: '80px 40px', 
-          background: 'rgba(5, 8, 18, 0.6)', 
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          padding: '60px 40px', 
+          background: 'var(--surface-bright)', 
+          border: '1.5px solid var(--glass-border)',
           borderRadius: '50px',
           position: 'relative',
-          boxShadow: '0 40px 100px rgba(0,0,0,0.7)',
+          boxShadow: '0 30px 80px rgba(30, 58, 95, 0.08)',
           overflow: 'hidden'
         }}>
+          {/* Decorative blobs for warmth */}
+          <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,58,95,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
           <div className="map-container-premium">
             <World 
               onSelect={handleCountrySelect}
               size={900} 
-              mapColor="#162035"
-              strokeColor="rgba(245, 158, 11, 0.4)"
+              mapColor="#1e3a5f"
+              strokeColor="rgba(243, 237, 228, 0.6)"
               strokeWidth={0.5}
-              hoverColor="var(--primary)"
-              selectColor="var(--primary)"
+              hoverColor="#2e7d5e"
+              selectColor="#2e7d5e"
               hints={true}
-              hintBackgroundColor="var(--surface-bright)"
-              hintTextColor="white"
+              hintBackgroundColor="#1e3a5f"
+              hintTextColor="#ffffff"
               hintPadding="12px 18px"
               hintBorderRadius="12px"
               type="select-single"
@@ -88,7 +92,7 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
           {loadingTravel && (
             <div className="travel-overlay">
               <div style={{ fontSize: '40px', animation: 'bounce 1s infinite' }}>✈️</div>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '24px', fontWeight: '900' }}>Viajando a {loadingTravel}...</h3>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '24px', fontWeight: '900' }}>Viajando a {loadingTravel}...</h3>
             </div>
           )}
         </div>
@@ -98,45 +102,47 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
       {activeTab === 'venezuela' && (
       <div className="stagger-2 fade-in">
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <div className="hero-badge-premium" style={{ marginBottom: '20px', background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.2)' }}>🇻🇪 NUESTRO LEGADO CULINARIO</div>
-          <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 15px', letterSpacing: '-2.5px', color: 'white', lineHeight: '1' }}>
-            Ruta del Sabor <span style={{ color: '#22c55e', textShadow: '0 0 40px rgba(34, 197, 94, 0.3)' }}>Venezolano</span>
+          <div className="hero-badge-premium" style={{ marginBottom: '20px', background: 'rgba(46, 125, 94, 0.1)', color: 'var(--primary)', borderColor: 'rgba(46, 125, 94, 0.2)' }}>🇻🇪 NUESTRO LEGADO CULINARIO</div>
+          <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 15px', letterSpacing: '-2.5px', color: 'var(--text-primary)', lineHeight: '1' }}>
+            Ruta del Sabor <span style={{ color: 'var(--primary)' }}>Venezolano</span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '20px', margin: '0 auto', maxWidth: '750px', lineHeight: '1.6' }}>
             Nuestras raíces son sagradas. Explora la diversidad de cada estado.
           </p>
         </div>
 
+        {/* VENEZUELA MAP — Vichy palette (crema/verde) */}
         <div className="glass-panel-premium" style={{ 
           padding: '60px 40px', 
-          background: 'rgba(5, 8, 18, 0.6)', 
-          border: '1px solid rgba(34, 197, 94, 0.15)',
+          background: 'var(--surface-bright)', 
+          border: '1.5px solid var(--primary)',
           borderRadius: '50px',
           position: 'relative',
-          boxShadow: '0 40px 100px rgba(0,0,0,0.7)',
+          boxShadow: '0 30px 80px rgba(46, 125, 94, 0.08)',
           overflow: 'hidden'
         }}>
+          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '250px', height: '250px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,125,94,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
           <div className="map-container-premium">
             <Venezuela 
               onSelect={handleStateSelect}
               size={650}
-              mapColor="#162035"
-              strokeColor="rgba(34, 197, 94, 0.5)"
+              mapColor="#1e3a5f"
+              strokeColor="rgba(243, 237, 228, 0.8)"
               strokeWidth={1.2}
-              hoverColor="#22c55e"
-              selectColor="#16a34a"
+              hoverColor="#2e7d5e"
+              selectColor="#2e7d5e"
               hints={true}
-              hintBackgroundColor="var(--surface-bright)"
-              hintTextColor="white"
+              hintBackgroundColor="#1e3a5f"
+              hintTextColor="#ffffff"
               hintPadding="12px 18px"
               hintBorderRadius="12px"
               type="select-single"
             />
           </div>
           {loadingTravel && (
-            <div className="travel-overlay" style={{ border: '1px solid #4ade80' }}>
+            <div className="travel-overlay" style={{ border: '1px solid var(--primary)', background: 'rgba(255,255,255,0.95)' }}>
               <div style={{ fontSize: '40px', animation: 'bounce 1s infinite' }}>🇻🇪</div>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '24px', fontWeight: '900' }}>Explorando {loadingTravel}...</h3>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '24px', fontWeight: '900' }}>Explorando {loadingTravel}...</h3>
             </div>
           )}
         </div>
@@ -158,13 +164,14 @@ const RegionesView = ({ setPrompt, generarReceta, setSeccionActiva, setPaisSelec
         .map-container-premium svg {
           max-width: 100%;
           height: auto !important;
-          filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+          filter: drop-shadow(0 10px 30px rgba(30, 58, 95, 0.15));
         }
         .travel-overlay {
           position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          padding: 30px 60px; display: flex; flexDirection: column; alignItems: center; gap: 20px;
-          border: 1px solid var(--primary); zIndex: 100; background: rgba(10, 15, 29, 0.9);
-          backdropFilter: blur(40px); border-radius: 30px;
+          padding: 30px 60px; display: flex; flex-direction: column; align-items: center; gap: 20px;
+          border: 1px solid var(--primary); z-index: 100; background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(40px); border-radius: 30px;
+          box-shadow: 0 20px 60px rgba(30, 58, 95, 0.12);
         }
         .map-container-premium path:hover {
           filter: brightness(1.3) drop-shadow(0 0 10px currentColor);

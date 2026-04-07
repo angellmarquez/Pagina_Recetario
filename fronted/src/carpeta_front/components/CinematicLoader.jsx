@@ -80,7 +80,7 @@ const CinematicLoader = ({ visible }) => {
         .loader-circle-outer {
           position: absolute;
           width: 100%; height: 100%;
-          border: 2px solid rgba(245, 158, 11, 0.1);
+          border: 2px solid rgba(46, 125, 94, 0.1);
           border-top: 2px solid var(--primary);
           border-radius: 50%;
           animation: spinLoader 1.5s linear infinite;
@@ -97,7 +97,7 @@ const CinematicLoader = ({ visible }) => {
 
         .loader-emoji {
           font-size: 40px;
-          filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.5));
+          filter: drop-shadow(0 0 20px rgba(46, 125, 94, 0.5));
           animation: pulseEmoji 1s ease-in-out infinite alternate;
         }
 
@@ -128,7 +128,7 @@ const CinematicLoader = ({ visible }) => {
         .loader-progress-track {
           width: 200px;
           height: 4px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(0,0,0,0.03);
           border-radius: 10px;
           overflow: hidden;
         }
